@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     // --- ACTIVITÉ RÉCENTE ---
     $recent_activities = [];
     $query_activity = "
-    (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refechantillon, ', ') as details
+    (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
     )
     UNION ALL
-    (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refechantillon, ', ') as details
+    (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
     )
     UNION ALL
-    (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.refechantillon, ', ') as details
+    (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, GROUP_CONCAT(f.refEchantillon SEPARATOR ', ') as details
     FROM Fabrication f
     JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
     WHERE f.idlot IS NOT NULL
