@@ -441,8 +441,8 @@ UNION ALL
 (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.refechantillon, ', ') as details
 FROM Fabrication f
 JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
-WHERE f.idLot IS NOT NULL
-GROUP BY f.idLot, f.datecreation, u.prenom, u.nom
+    WHERE f.idlot IS NOT NULL
+    GROUP BY f.idlot, f.datecreation, u.prenom, u.nom
 )
 ORDER BY activity_date DESC
 LIMIT 5;
