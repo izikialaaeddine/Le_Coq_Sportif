@@ -1,9 +1,11 @@
 <?php
+// Démarrer la session AVANT TOUT
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
 require_once __DIR__ . '/config/error_config.php';
 date_default_timezone_set('Europe/Paris');
 $dateDemande = date('Y-m-d H:i:s', strtotime('-1 hour'));
-
-session_start();
 require_once __DIR__ . '/config/db.php';
 
 // La session est bonne, on la garde simplement

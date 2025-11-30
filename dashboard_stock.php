@@ -1,6 +1,9 @@
 <?php
+// Démarrer la session AVANT TOUT
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
 require_once __DIR__ . '/config/error_config.php';
-session_start();
 require_once __DIR__ . '/config/db.php';
 // Endpoint pour récupérer tous les échantillons à Qte=0
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_zero_stock_samples') {

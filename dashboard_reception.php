@@ -1,6 +1,9 @@
 <?php
+// Démarrer la session AVANT TOUT
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
 require_once __DIR__ . '/config/error_config.php';
-session_start();
 date_default_timezone_set('Europe/Paris');
 require_once __DIR__ . '/config/db.php';
 
