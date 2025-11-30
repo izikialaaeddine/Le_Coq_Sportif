@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config/error_config.php';
-require_once __DIR__ . '/config/db.php';
 session_start();
+require_once __DIR__ . '/config/db.php';
 // Endpoint pour récupérer tous les échantillons à Qte=0
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_zero_stock_samples') {
     header('Content-Type: application/json');
