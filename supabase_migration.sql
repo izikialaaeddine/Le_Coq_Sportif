@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS Echantillon (
     Description TEXT,
     Qte INTEGER,
     DateCreation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    idUtilisateur INTEGER REFERENCES Utilisateur(idUtilisateur)
+    idUtilisateur INTEGER REFERENCES Utilisateur(idUtilisateur) ON DELETE SET NULL
 );
 
 -- Table Demande
@@ -226,8 +226,9 @@ INSERT INTO Famille (id, nom) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Insérer l'échantillon existant
+-- Note: idUtilisateur=12 n'existe pas, on utilise NULL ou un utilisateur existant
 INSERT INTO Echantillon (RefEchantillon, Famille, Couleur, Taille, Statut, Description, Qte, DateCreation, idUtilisateur) VALUES
-    ('REF0192', 'Mousse', 'Argent', 'L', 'disponible', 'Edition limitée', 22, '2025-10-03 02:22:49', 12)
+    ('REF0192', 'Mousse', 'Argent', 'L', 'disponible', 'Edition limitée', 22, '2025-10-03 02:22:49', NULL)
 ON CONFLICT (RefEchantillon) DO NOTHING;
 
 -- Créer les séquences pour les AUTO_INCREMENT (si nécessaire)
