@@ -1648,7 +1648,7 @@ while ($row = $resFab->fetch_assoc()) {
     $resRetour = $conn->query("
         SELECT SUM(re.qte) as total
         FROM RetourEchantillon re
-        JOIN Retour r ON r.idRetour = re.idRetour
+        JOIN Retour r ON r.idretour = re.idretour
         WHERE re.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
           AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
     ");
@@ -3768,7 +3768,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $historiques = $conn->query(
-    "SELECT H.*, U.nom AS Nom, U.prenom AS Prenom, R.role AS Role FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur LEFT JOIN Role R ON U.idrole = R.idrole ORDER BY H.DateAction DESC LIMIT 100"
+    "SELECT H.*, U.nom AS Nom, U.prenom AS Prenom, R.role AS Role FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur LEFT JOIN Role R ON U.idrole = R.idrole ORDER BY H.dateaction DESC LIMIT 100"
 )->fetch_all(MYSQLI_ASSOC);
 ?>
 <script>
