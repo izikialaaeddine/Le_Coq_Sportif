@@ -1639,7 +1639,7 @@ while ($row = $resFab->fetch_assoc()) {
         FROM DemandeEchantillon de
         JOIN Demande d ON d.iddemande = de.iddemande
         WHERE de.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
-          AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
+          AND d.statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
     ");
     $rowEmprunt = $resEmprunt ? $resEmprunt->fetch_assoc() : null;
     $qteEmpruntee = (int)($rowEmprunt['total'] ?? 0);
