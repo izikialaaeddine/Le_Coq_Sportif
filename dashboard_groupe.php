@@ -1444,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!query) return true; // Si pas de recherche, afficher tout
             
             // Rechercher dans tous les champs des échantillons
-            const searchText = d.echantillons.map(e => 
+            const searchText = (d.echantillons || []).map(e => 
                 `${e.ref || ''} ${e.famille || ''} ${e.couleur || ''} ${e.qte || ''}`
             ).join(' ').toLowerCase();
             
@@ -1478,7 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-4 py-3 align-top"><span class="badge ${getBadgeClass(statutPrincipal)}">${statutPrincipal}</span></td>
                 <td class="px-4 py-3 align-top">${actionStock}</td>
                 <td class="px-4 py-3 align-top">
-                    ${d.statut && d.statut.trim().toLowerCase() === 'en attente' ? `
+                    ${d.statut && d.statut.trim && d.statut.trim().toLowerCase() === 'en attente' ? `
                         <button onclick="editDemande(${d.id})" class="text-indigo-600 hover:text-indigo-900 transition-colors">
                             <i class="fas fa-edit"></i>
                         </button>
