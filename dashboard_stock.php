@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $query_activity = "
     (SELECT 'demande' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
     FROM Demande d
-    JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+    JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
     WHERE d.TypeDemande = 'demande'
     GROUP BY d.idDemande
@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     UNION ALL
     (SELECT 'retour' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
     FROM Demande d
-    JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+    JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
     WHERE d.TypeDemande = 'retour'
     GROUP BY d.idDemande
@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     UNION ALL
     (SELECT 'fabrication' as type, f.DateCreation as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(f.RefEchantillon SEPARATOR ', ') as details
     FROM Fabrication f
-    JOIN Utilisateur u ON f.idUtilisateur = u.idUtilisateur
+    JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
     WHERE f.idLot IS NOT NULL
     GROUP BY f.idLot
     )
@@ -184,9 +184,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     // --- REQUESTS TABLE ---
     $demandes_et_retours = [];
-    $res = $conn->query("SELECT d.*, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur
+    $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Demande d
-                         JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+                         JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
                          ORDER BY d.DateDemande DESC");
     if ($res) {
         while ($row = $res->fetch_assoc()) {
@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     echo '<tr><td colspan="7" style="color:red">DEBUG: Début du code PHP retours</td></tr>';
     $res = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Retour r
-                         JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur
+                         JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
                          ORDER BY r.DateRetour DESC");
     if ($res && $res->num_rows > 0) {
         echo '<tr><td colspan="7" style="color:green">DEBUG: Il y a ' . $res->num_rows . ' retours</td></tr>';
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     // 2. Récupérer les Fabrications et les formater comme des demandes
     $fabrications_as_demandes = [];
-    $resFab = $conn->query("SELECT f.idLot, f.DateCreation, f.StatutFabrication, f.idUtilisateur, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idUtilisateur = u.idUtilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC");
+    $resFab = $conn->query("SELECT f.idLot, f.DateCreation, f.StatutFabrication, f.idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC");
     if ($resFab) {
         while($lot = $resFab->fetch_assoc()) {
             $lot_details = [];
@@ -406,7 +406,7 @@ $recent_activities = [];
 $query_activity = "
 (SELECT 'demande' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
 FROM Demande d
-JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
 JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
 WHERE d.TypeDemande = 'demande'
 GROUP BY d.idDemande
@@ -414,7 +414,7 @@ GROUP BY d.idDemande
 UNION ALL
 (SELECT 'retour' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
 FROM Demande d
-JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
 JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
 WHERE d.TypeDemande = 'retour'
 GROUP BY d.idDemande
@@ -422,7 +422,7 @@ GROUP BY d.idDemande
 UNION ALL
 (SELECT 'fabrication' as type, f.DateCreation as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(f.RefEchantillon SEPARATOR ', ') as details
 FROM Fabrication f
-JOIN Utilisateur u ON f.idUtilisateur = u.idUtilisateur
+JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
 WHERE f.idLot IS NOT NULL
 GROUP BY f.idLot
 )
@@ -467,16 +467,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut = 'En attente' ORDER BY r.DateRetour DESC";
             break;
         case 'approved_returns':
-            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.Nom, u.Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur WHERE r.Statut IN ('Validé', 'Approuvé', 'Retourné') ORDER BY r.DateRetour DESC";
+            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut IN ('Validé', 'Approuvé', 'Retourné') ORDER BY r.DateRetour DESC";
             break;
         case 'rejected_returns':
-            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.Nom, u.Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur WHERE r.Statut = 'Refusé' ORDER BY r.DateRetour DESC";
+            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut = 'Refusé' ORDER BY r.DateRetour DESC";
             break;
         case 'pending_fabrications':
-            $query = "SELECT f.idLot, f.DateCreation, u.Nom, u.Prenom, f.StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idUtilisateur = u.idUtilisateur WHERE f.StatutFabrication IN ('En attente', 'En cours') AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC";
+            $query = "SELECT f.idLot, f.DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.StatutFabrication IN ('En attente', 'En cours') AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC";
             break;
         case 'completed_fabrications':
-            $query = "SELECT f.idLot, f.DateCreation, u.Nom, u.Prenom, f.StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idUtilisateur = u.idUtilisateur WHERE f.StatutFabrication = 'Terminée' AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC";
+            $query = "SELECT f.idLot, f.DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.StatutFabrication = 'Terminée' AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC";
             break;
     }
 
@@ -1725,9 +1725,9 @@ while ($row = $resFab->fetch_assoc()) {
 
                                     // 1. Récupérer les Demandes et Retours
                                     $demandes_et_retours = [];
-                                    $res = $conn->query("SELECT d.*, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur
+                                    $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                                                          FROM Demande d
-                                                         JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+                                                         JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
                                                          ORDER BY d.DateDemande DESC");
                                     if ($res) {
                                     while ($row = $res->fetch_assoc()) {
@@ -1746,9 +1746,9 @@ while ($row = $resFab->fetch_assoc()) {
 
                                     // 1b. Récupérer les retours de la table Retour
                                     $retours = [];
-                                    $resRetours = $conn->query("SELECT r.*, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur
+                                    $resRetours = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                                                                 FROM Retour r
-                                                                JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur
+                                                                JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
                                                                 ORDER BY r.DateRetour DESC");
                                     if ($resRetours) {
                                         while ($row = $resRetours->fetch_assoc()) {
@@ -1768,7 +1768,7 @@ while ($row = $resFab->fetch_assoc()) {
 
                                     // 2. Récupérer les Fabrications et les formater comme des demandes
                                     $fabrications_as_demandes = [];
-                                    $resFab = $conn->query("SELECT f.idLot, f.DateCreation, f.StatutFabrication, f.idUtilisateur, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idUtilisateur = u.idUtilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC");
+                                    $resFab = $conn->query("SELECT f.idLot, f.DateCreation, f.StatutFabrication, f.idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC");
                                     if ($resFab) {
                                         while($lot = $resFab->fetch_assoc()) {
                                             $lot_details = [];
