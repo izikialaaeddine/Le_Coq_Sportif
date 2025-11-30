@@ -463,6 +463,12 @@ if ($echantillons_query) {
             $echantillons[] = $row;
         }
     }
+} else {
+    // Debug: logger l'erreur si la requête échoue
+    error_log("ERREUR: Requête échantillons échouée");
+    if (method_exists($conn, 'error')) {
+        error_log("Erreur DB: " . $conn->error);
+    }
 }
 
 // Action pour récupérer les détails pour les modales du dashboard
