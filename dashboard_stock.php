@@ -1745,9 +1745,9 @@ if ($resFab) {
                         </div>
 
                         <div class="flex border-b mb-4">
-                            <button id="showDemandesBtn" class="px-4 py-2 font-semibold border-b-2">Demandes</button>
-                            <button id="showRetoursBtn" class="px-4 py-2 font-semibold border-b-2">Retours</button>
-                            <button id="showFabricationsBtn" class="px-4 py-2 font-semibold border-b-2">Fabrications</button>
+                            <button id="showDemandesBtn" class="px-4 py-2 font-semibold border-b-2 text-indigo-600 border-indigo-600">Demandes</button>
+                            <button id="showRetoursBtn" class="px-4 py-2 font-semibold border-b-2 text-gray-500 border-transparent">Retours</button>
+                            <button id="showFabricationsBtn" class="px-4 py-2 font-semibold border-b-2 text-gray-500 border-transparent">Fabrications</button>
                         </div>
                         
                         <div class="overflow-x-auto">
@@ -3076,8 +3076,20 @@ function applyAllRequestFilters() {
     const statut = normalize(document.getElementById('filterRequestStatus').value);
     
     let activeType = 'demande';
-    if (document.getElementById('showRetoursBtn').classList.contains('text-indigo-600')) activeType = 'retour';
-    else if (document.getElementById('showFabricationsBtn').classList.contains('text-indigo-600')) activeType = 'fabrication';
+    const showRetoursBtn = document.getElementById('showRetoursBtn');
+    const showFabricationsBtn = document.getElementById('showFabricationsBtn');
+    const showDemandesBtn = document.getElementById('showDemandesBtn');
+    
+    if (showRetoursBtn && showRetoursBtn.classList.contains('text-indigo-600')) {
+        activeType = 'retour';
+    } else if (showFabricationsBtn && showFabricationsBtn.classList.contains('text-indigo-600')) {
+        activeType = 'fabrication';
+    } else if (showDemandesBtn && showDemandesBtn.classList.contains('text-indigo-600')) {
+        activeType = 'demande';
+    } else {
+        // Par défaut, afficher les demandes si aucun bouton n'est actif
+        activeType = 'demande';
+    }
     
     const rows = document.querySelectorAll('#requestsTableBody tr');
     
@@ -3111,8 +3123,11 @@ function applyAllRequestFilters() {
     }
 
     rows.forEach(row => {
-        const rowType = row.dataset.type;
-        const matchType = (rowType === activeType);
+        const rowType = row.dataset.type || 'demande';
+        // Normaliser le type : 'demande' ou 'Demande' -> 'demande'
+        const normalizedRowType = rowType.toLowerCase();
+        const normalizedActiveType = activeType.toLowerCase();
+        const matchType = (normalizedRowType === normalizedActiveType);
         
         // Recherche dans tous les champs pertinents
         const demandeur = normalize(row.children[0]?.textContent || '');
