@@ -1601,13 +1601,26 @@ while ($row = $resFab->fetch_assoc()) {
                                     </tr>
                                 </thead>
                                 <tbody id="samplesTableBody">
-                                    <?php foreach ($echantillons as $sample): ?>
+                                    <?php 
+                                    // Debug
+                                    if (empty($echantillons)) {
+                                        echo '<tr><td colspan="7" class="px-4 py-3 text-center text-red-600">⚠️ Aucun échantillon trouvé dans la base de données</td></tr>';
+                                    }
+                                    foreach ($echantillons as $sample): 
+                                        // Gérer les deux cas : majuscules (alias) et minuscules (PostgreSQL)
+                                        $refEchantillon = $sample['RefEchantillon'] ?? $sample['refechantillon'] ?? '';
+                                        $famille = $sample['Famille'] ?? $sample['famille'] ?? '';
+                                        $couleur = $sample['Couleur'] ?? $sample['couleur'] ?? '';
+                                        $taille = $sample['Taille'] ?? $sample['taille'] ?? '';
+                                        $qte = $sample['Qte'] ?? $sample['qte'] ?? 0;
+                                        $statut = $sample['Statut'] ?? $sample['statut'] ?? '';
+                                        $dateCreation = $sample['DateCreation'] ?? $sample['datecreation'] ?? '';
+                                    ?>
                                         <tr class="hover:bg-gray-50">
-                                            <td class="px-4 py-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($sample['RefEchantillon']) ?></td>
-                                            <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($sample['Famille']) ?></td>
+                                            <td class="px-4 py-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($refEchantillon) ?></td>
+                                            <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($famille) ?></td>
                                             <td class="px-4 py-3 text-sm text-gray-700">
                                                 <?php
-                                                    $couleur = $sample['Couleur'];
                                                     $bg = isset($colorMap[$couleur]) ? $colorMap[$couleur] : '#6b7280';
                                                     $textColor = getTextColor($bg);
                                                 ?>
@@ -1616,18 +1629,18 @@ while ($row = $resFab->fetch_assoc()) {
                                                     <?= htmlspecialchars($couleur) ?>
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($sample['Taille']) ?></td>
+                                            <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($taille) ?></td>
                                             <td class="px-4 py-3 text-sm text-gray-700">
 <?php
     // CORRECTION: Calcul correct des quantités
-    $qteStock = (int)$sample['Qte']; // Stock dans la base
+    $qteStock = (int)$qte; // Stock dans la base
     
     // Calculer la quantité empruntée (tous les statuts validés)
     $resEmprunt = $conn->query("
         SELECT SUM(de.qte) as total
         FROM DemandeEchantillon de
         JOIN Demande d ON d.iddemande = de.iddemande
-        WHERE de.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
+        WHERE de.refechantillon = '" . $conn->real_escape_string($refEchantillon) . "'
           AND d.statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
     ");
     $rowEmprunt = $resEmprunt ? $resEmprunt->fetch_assoc() : null;
@@ -1638,7 +1651,7 @@ while ($row = $resFab->fetch_assoc()) {
         SELECT SUM(re.qte) as total
         FROM RetourEchantillon re
         JOIN Retour r ON r.idretour = re.idretour
-        WHERE re.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
+        WHERE re.refechantillon = '" . $conn->real_escape_string($refEchantillon) . "'
           AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
     ");
     $rowRetour = $resRetour ? $resRetour->fetch_assoc() : null;
@@ -1687,7 +1700,7 @@ while ($row = $resFab->fetch_assoc()) {
                                                     <?= htmlspecialchars($statutText) ?>
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars(formatDateMoinsUneHeure($sample['DateCreation'])) ?></td>
+                                            <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars(formatDateMoinsUneHeure($dateCreation)) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
