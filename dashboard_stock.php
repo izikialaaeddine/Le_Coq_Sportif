@@ -420,24 +420,24 @@ $query_activity = "
 (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
 FROM Demande d
 JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
-WHERE d.TypeDemande = 'demande'
-GROUP BY d.idDemande
+JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
+WHERE d.typedemande = 'demande'
+GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
 )
 UNION ALL
 (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
 FROM Demande d
 JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
-WHERE d.TypeDemande = 'retour'
-GROUP BY d.idDemande
+JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
+WHERE d.typedemande = 'retour'
+GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
 )
 UNION ALL
 (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
 FROM Fabrication f
 JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
 WHERE f.idLot IS NOT NULL
-GROUP BY f.idLot
+GROUP BY f.idLot, f.datecreation, u.prenom, u.nom
 )
 ORDER BY activity_date DESC
 LIMIT 5;
