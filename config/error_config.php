@@ -32,10 +32,7 @@ ini_set('max_execution_time', 15);
 //     ob_start('ob_gzhandler');
 // }
 
-// Désactiver les sessions automatiques si non utilisées
-if (session_status() === PHP_SESSION_NONE) {
-    // Ne pas démarrer la session automatiquement
-}
+// Ne pas démarrer la session ici - elle doit être démarrée dans les fichiers qui en ont besoin
 
 // Optimiser les requêtes
 ini_set('default_socket_timeout', 5);

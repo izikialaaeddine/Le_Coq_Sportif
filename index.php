@@ -1,7 +1,11 @@
 <?php
+// Démarrer la session AVANT tout
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Configuration d'erreurs et performance
 require_once __DIR__ . '/config/error_config.php';
-session_start();
 require_once __DIR__ . '/config/db.php';
 
 // Fetch all users with their credentials for display
@@ -58,27 +62,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $identifiantUser = $user['Identifiant'] ?? $user['identifiant'] ?? '';
                         
                         if ($motDePasse && password_verify($mdp, $motDePasse)) {
+                            // Sauvegarder la session AVANT toute sortie
                             $_SESSION['user'] = [
-                                'id'    => $idUtilisateur,
+                                'id'    => (int)$idUtilisateur,
                                 'Nom'   => $nom,
                                 'Prenom'=> $prenom,
                                 'Role'  => $role,
-                                'idRole'=> $idRole,
+                                'idRole'=> (int)$idRole,
                                 'Identifiant' => $identifiantUser
                             ];
-                            // Redirection selon le rôle
+                            
+                            // Forcer l'écriture de la session
+                            session_write_close();
+                            
+                            // Redirection selon le rôle (AVANT tout output)
+                            $redirect = 'index.php';
                             if ($idRole == 1) {
-                                header('Location: dashboard_stock.php');
+                                $redirect = 'dashboard_stock.php';
                             } else if ($idRole == 2) {
-                                header('Location: dashboard_groupe.php');
+                                $redirect = 'dashboard_groupe.php';
                             } else if ($idRole == 3) {
-                                header('Location: dashboard_reception.php');
+                                $redirect = 'dashboard_reception.php';
                             } else if ($idRole == 4) {
-                                header('Location: dashboard_admin.php');
-                            } else {
-                                header('Location: index.php');
+                                $redirect = 'dashboard_admin.php';
                             }
-                            exit;
+                            
+                            // Redirection immédiate
+                            header('Location: ' . $redirect, true, 302);
+                            exit();
                         } else {
                             $error_message = "Identifiant ou mot de passe incorrect.";
                         }
