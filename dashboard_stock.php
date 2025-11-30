@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     // --- ACTIVITÉ RÉCENTE ---
     $recent_activities = [];
     $query_activity = "
-    (SELECT 'demande' as type, d.DateDemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
+    (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.idDemande
     )
     UNION ALL
-    (SELECT 'retour' as type, d.DateDemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
+    (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.idDemande
     )
     UNION ALL
-    (SELECT 'fabrication' as type, f.DateCreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
+    (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
     FROM Fabrication f
     JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
     WHERE f.idLot IS NOT NULL
@@ -181,7 +181,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $data['recent_activities'] = $recent_activities;
 
     // --- SAMPLES TABLE ---
-    $data['samples'] = $conn->query("SELECT * FROM Echantillon ORDER BY DateCreation DESC")->fetch_all(MYSQLI_ASSOC);
+    $samples_query = $conn->query("SELECT * FROM Echantillon ORDER BY datecreation DESC");
+    if ($samples_query) {
+        if (method_exists($samples_query, 'fetch_all')) {
+            $data['samples'] = $samples_query->fetch_all(MYSQLI_ASSOC);
+        } else {
+            $data['samples'] = [];
+            while ($row = $samples_query->fetch_assoc()) {
+                $data['samples'][] = $row;
+            }
+        }
+    } else {
+        $data['samples'] = [];
+    }
 
     // --- REQUESTS TABLE ---
     $demandes_et_retours = [];
@@ -286,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $data['requests'] = $all_requests;
 
     // --- HISTORY TABLE ---
-    $history_query = $conn->query("SELECT H.*, U.nom AS Nom, U.prenom AS Prenom, R.role AS Role FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur LEFT JOIN Role R ON U.idrole = R.idrole ORDER BY H.DateAction DESC LIMIT 100");
+    $history_query = $conn->query("SELECT H.*, U.nom AS Nom, U.prenom AS Prenom, R.role AS Role FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur LEFT JOIN Role R ON U.idrole = R.idrole ORDER BY H.dateaction DESC LIMIT 100");
     if ($history_query) {
         if (method_exists($history_query, 'fetch_all')) {
             $data['history'] = $history_query->fetch_all(MYSQLI_ASSOC);
@@ -405,7 +417,7 @@ if ($resFabrications) {
 // --- ACTIVITÉ RÉCENTE ---
 $recent_activities = [];
 $query_activity = "
-(SELECT 'demande' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
+(SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
 FROM Demande d
 JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
 JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
@@ -413,7 +425,7 @@ WHERE d.TypeDemande = 'demande'
 GROUP BY d.idDemande
 )
 UNION ALL
-(SELECT 'retour' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
+(SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
 FROM Demande d
 JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
 JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
@@ -421,7 +433,7 @@ WHERE d.TypeDemande = 'retour'
 GROUP BY d.idDemande
 )
 UNION ALL
-(SELECT 'fabrication' as type, f.DateCreation as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(f.RefEchantillon SEPARATOR ', ') as details
+(SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
 FROM Fabrication f
 JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
 WHERE f.idLot IS NOT NULL
@@ -456,16 +468,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, DateCreation FROM Echantillon WHERE Statut = 'En fabrication' ORDER BY DateCreation DESC";
             break;
         case 'pending_requests':
-            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.TypeDemande = 'demande' AND d.Statut = 'En attente' ORDER BY d.DateDemande DESC";
+            $query = "SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.typedemande = 'demande' AND d.statut = 'En attente' ORDER BY d.datedemande DESC";
             break;
         case 'approved_requests':
-            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom, d.Statut FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.TypeDemande = 'demande' AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service') ORDER BY d.DateDemande DESC";
+            $query = "SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, u.nom AS Nom, u.prenom AS Prenom, d.statut AS Statut FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.typedemande = 'demande' AND d.statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service') ORDER BY d.datedemande DESC";
             break;
         case 'rejected_requests':
-            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.TypeDemande = 'demande' AND d.Statut = 'Refusée' ORDER BY d.DateDemande DESC";
+            $query = "SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.typedemande = 'demande' AND d.statut = 'Refusée' ORDER BY d.datedemande DESC";
             break;
         case 'pending_returns':
-            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut = 'En attente' ORDER BY r.DateRetour DESC";
+            $query = "SELECT r.idretour AS idDemande, r.dateretour AS DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.statut AS Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.statut = 'En attente' ORDER BY r.dateretour DESC";
             break;
         case 'approved_returns':
             $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut IN ('Validé', 'Approuvé', 'Retourné') ORDER BY r.DateRetour DESC";
