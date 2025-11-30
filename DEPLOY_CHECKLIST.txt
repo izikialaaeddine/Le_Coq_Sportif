@@ -1,0 +1,75 @@
+═══════════════════════════════════════════════════════════════
+  CHECKLIST DE DÉPLOIEMENT EN LIGNE
+═══════════════════════════════════════════════════════════════
+
+📋 AVANT DE COMMENCER:
+   ☐ Avoir une connexion Internet stable
+   ☐ Avoir le fichier database_export.sql prêt
+   ☐ Avoir FileZilla installé (pour FTP si nécessaire)
+
+🌐 ÉTAPE 1: CHOISIR UN HÉBERGEUR
+   ☐ 000webhost (GRATUIT - Recommandé)
+   ☐ InfinityFree (GRATUIT)
+   ☐ Freehostia (GRATUIT)
+   ☐ Hostinger (Payant mais excellent)
+
+📝 ÉTAPE 2: CRÉER LE COMPTE
+   ☐ S'inscrire sur l'hébergeur choisi
+   ☐ Choisir un nom de domaine/sous-domaine
+   ☐ Confirmer l'email d'activation
+   ☐ Se connecter au panneau de contrôle
+
+💾 ÉTAPE 3: CRÉER LA BASE DE DONNÉES
+   ☐ Aller dans la section "Databases" ou "MySQL"
+   ☐ Créer une nouvelle base de données
+   ☐ NOTER: Nom de la DB, Utilisateur, Mot de passe, Serveur
+   ☐ Ouvrir phpMyAdmin
+
+📥 ÉTAPE 4: IMPORTER LA BASE DE DONNÉES
+   ☐ Sélectionner la base de données créée
+   ☐ Cliquer sur "Importer"
+   ☐ Choisir le fichier database_export.sql
+   ☐ Cliquer "Exécuter"
+   ☐ Vérifier que l'importation a réussi
+
+📤 ÉTAPE 5: UPLOADER LES FICHIERS
+   ☐ Ouvrir le File Manager ou FileZilla
+   ☐ Supprimer index.html par défaut (si présent)
+   ☐ Uploader TOUS les fichiers PHP
+   ☐ Uploader le dossier config/
+   ☐ Uploader le dossier photos/
+   ☐ Vérifier que tous les fichiers sont bien uploadés
+
+⚙️ ÉTAPE 6: CONFIGURER config/db.php
+   ☐ Ouvrir config/db.php via File Manager
+   ☐ Modifier $host avec l'adresse MySQL du serveur
+   ☐ Modifier $db avec le nom de votre base de données
+   ☐ Modifier $user avec votre utilisateur MySQL
+   ☐ Modifier $pass avec votre mot de passe MySQL
+   ☐ Sauvegarder le fichier
+
+🔒 ÉTAPE 7: VÉRIFIER LES PERMISSIONS
+   ☐ Dossier photos/ → Permissions 755 ou 777
+   ☐ Fichiers PHP → Permissions 644
+   ☐ Fichier .htaccess → Permissions 644
+
+✅ ÉTAPE 8: TESTER LE SITE
+   ☐ Accéder à votre URL (ex: votrenom.000webhostapp.com)
+   ☐ Vérifier que la page de connexion s'affiche
+   ☐ Se connecter avec: admin / admin123
+   ☐ Tester toutes les fonctionnalités
+   ☐ Vérifier que les images s'affichent
+   ☐ Tester sur mobile (responsive)
+
+🐛 EN CAS DE PROBLÈME:
+   ☐ Vérifier les logs d'erreur dans le panneau
+   ☐ Vérifier que PHP 7.4+ est activé
+   ☐ Vérifier que mysqli est activé
+   ☐ Vérifier les identifiants de la base de données
+   ☐ Vérifier les permissions des fichiers
+
+🎉 FÉLICITATIONS!
+   Votre site est maintenant en ligne et accessible!
+
+═══════════════════════════════════════════════════════════════
+

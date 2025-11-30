@@ -1,0 +1,62 @@
+═══════════════════════════════════════════════════════════════
+  DÉPLOIEMENT RAPIDE EN LIGNE - GUIDE ULTRA SIMPLE
+═══════════════════════════════════════════════════════════════
+
+🎯 SOLUTION LA PLUS RAPIDE: 000webhost (GRATUIT)
+
+1️⃣ ALLER SUR: https://www.000webhost.com
+   → Cliquez "Get Started Free"
+   → Créez un compte (gratuit)
+   → Choisissez un nom (ex: monprojet.000webhostapp.com)
+
+2️⃣ CRÉER LA BASE DE DONNÉES:
+   → Dans le panneau, allez dans "Databases"
+   → Cliquez "Create Database"
+   → Notez: Nom DB, Utilisateur, Mot de passe
+   → Ouvrez phpMyAdmin
+
+3️⃣ IMPORTER LA BASE:
+   → Dans phpMyAdmin, sélectionnez votre DB
+   → Cliquez "Importer"
+   → Choisissez: database_export.sql
+   → Cliquez "Exécuter"
+
+4️⃣ UPLOADER LES FICHIERS:
+   → Dans le panneau, ouvrez "File Manager"
+   → Supprimez index.html par défaut
+   → Uploadez TOUS vos fichiers PHP
+   → Uploadez le dossier config/
+   → Uploadez le dossier photos/
+
+5️⃣ CONFIGURER:
+   → Ouvrez config/db.php dans File Manager
+   → Modifiez avec vos identifiants MySQL:
+     $host = 'localhost';
+     $db   = 'votre_nom_db';
+     $user = 'votre_user';
+     $pass = 'votre_password';
+   → Sauvegarder
+
+6️⃣ TESTER:
+   → Allez sur: https://votrenom.000webhostapp.com
+   → Connectez-vous: admin / admin123
+   → ✅ C'EST EN LIGNE!
+
+═══════════════════════════════════════════════════════════════
+
+📦 FICHIERS À UPLOADER:
+   ✅ Tous les .php
+   ✅ Dossier config/
+   ✅ Dossier photos/
+   ✅ database_export.sql (pour l'import)
+
+❌ NE PAS UPLOADER:
+   ❌ .htaccess (optionnel, déjà créé)
+   ❌ Fichiers .md, .txt (documentation)
+
+⏱️ TEMPS ESTIMÉ: 10-15 minutes
+
+🔗 LIEN DIRECT: https://www.000webhost.com
+
+═══════════════════════════════════════════════════════════════
+

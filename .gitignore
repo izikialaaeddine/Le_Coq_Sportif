@@ -1,0 +1,36 @@
+# Fichiers sensibles
+config/db.php
+*.sql
+*.log
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Fichiers temporaires
+*.tmp
+*.cache
+
+# Fichiers d'installation locaux
+INSTALL.sh
+INSTALL.bat
+
+# Documentation de déploiement (optionnel - décommentez si vous ne voulez pas les uploader)
+# DEPLOY_ONLINE.md
+# DEPLOY_CHECKLIST.txt
+# QUICK_DEPLOY.txt
+
+# Fichiers de configuration locaux
+.htaccess.local
+
+# Logs
+logs/
+*.log
+
+# Fichiers uploadés (gardez photos/ mais ignorez les uploads temporaires)
+photos/temp/
+photos/uploads/
+

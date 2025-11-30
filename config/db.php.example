@@ -1,0 +1,23 @@
+<?php
+// Configuration de la base de données
+// Copiez ce fichier en db.php et modifiez les valeurs
+
+// Pour MySQL local (XAMPP)
+$host = 'localhost';
+$db   = 'le_coq_sportif';
+$user = 'root';
+$pass = '';
+$charset = 'utf8mb4';
+
+// Pour Supabase (PostgreSQL) - Décommentez et configurez
+// $host = 'db.xxxxx.supabase.co';
+// $db   = 'postgres';
+// $user = 'postgres';
+// $pass = 'votre_mot_de_passe';
+// $port = 5432;
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die('Erreur de connexion: ' . $conn->connect_error);
+}
+?>
