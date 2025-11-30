@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y \
 # Activer mod_rewrite
 RUN a2enmod rewrite
 
+# Configurer ServerName pour éviter le warning
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Copier les fichiers
 COPY . /var/www/html/
 
