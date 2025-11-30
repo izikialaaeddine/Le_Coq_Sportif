@@ -1662,7 +1662,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     qte: item.qte
                 })),
                 date: new Date().toISOString(),
-                statut: 'En attente'
+                statut: 'En attente',
+                Statut: 'En attente'
             };
             
             App.demandes.unshift(newDemande);
@@ -2342,7 +2343,8 @@ function saveDemande() {
                     qte: item.qte
                 })),
                 date: new Date().toISOString(),
-                statut: 'En attente'
+                statut: 'En attente',
+                Statut: 'En attente'
             };
             
             App.demandes.unshift(newDemande);

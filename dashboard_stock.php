@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Mettre à jour le statut de la demande
-        $stmt = $conn->prepare("UPDATE Demande SET statut = ? WHERE iddemande = ? AND statut = 'Approuvée'");
+        $stmt = $conn->prepare("UPDATE Demande SET Statut = ? WHERE idDemande = ? AND Statut = 'Approuvée'");
         $stmt->bind_param("si", $newStatus, $idDemande);
         if (!$stmt->execute()) { throw new Exception("Erreur de mise à jour de la demande: " . $stmt->error); }
         if ($stmt->affected_rows === 0) { throw new Exception("La demande n'est pas approuvée ou n'existe pas."); }
