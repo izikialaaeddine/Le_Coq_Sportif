@@ -36,7 +36,7 @@ $res = $conn->query("
     SELECT d.*, u.nom as NomDemandeur, u.prenom as PrenomDemandeur
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-    ORDER BY d.DateDemande DESC
+    ORDER BY d.datedemande DESC
 ");
 if (!$res) { die('Erreur SQL : ' . $conn->error); }
 while ($row = $res->fetch_assoc()) {
@@ -101,7 +101,7 @@ $emprunts = [];
 $res = $conn->query("
     SELECT de.refEchantillon, de.famille, de.couleur, SUM(de.qte) as qte_empruntee
     FROM DemandeEchantillon de
-    JOIN Demande d ON d.idDemande = de.idDemande
+    JOIN Demande d ON d.iddemande = de.iddemande
     WHERE (
         d.statut = 'Validée'
         OR d.statut = 'emprunte'
@@ -123,7 +123,7 @@ $res = $conn->query("
     FROM RetourEchantillon re
     JOIN Retour r ON r.idRetour = re.idRetour
     WHERE r.idutilisateur = " . intval($currentUser['id']) . "
-      AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')
+      AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
     GROUP BY re.refEchantillon, re.famille, re.couleur
 ");
 if (!$res) { die('Erreur SQL : ' . $conn->error); }
@@ -286,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['demande'])) {
                 FROM RetourEchantillon re
                 JOIN Retour r ON r.idRetour = re.idRetour
                 WHERE re.RefEchantillon = '" . $conn->real_escape_string($ref) . "'
-                  AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')
+                  AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
             ");
             $rowRetour = $resRetour ? $resRetour->fetch_assoc() : null;
             $qteRetournee = (int)($rowRetour['total'] ?? 0);
@@ -1321,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Calcul des demandes validées (incluant les statuts spéciaux)
             const demandesValidees = App.demandes.filter(d => {
-                const statut = d.Statut.toLowerCase();
+                const statut = d.statut.toLowerCase();
                 return statut === 'validée' || statut === 'approuvée' || 
                        statut === 'prêt pour retrait' || statut === 'en fabrication' || 
                        statut === 'attente inter-service';
@@ -1331,19 +1331,19 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('=== DEBUG STATISTIQUES ===');
             console.log('Total demandes:', App.demandes.length);
             console.log('Demandes validées calculées:', demandesValidees);
-            console.log('Détail des statuts:', App.demandes.map(d => ({ id: d.id, statut: d.Statut })));
+            console.log('Détail des statuts:', App.demandes.map(d => ({ id: d.id, statut: d.statut })));
             
             document.getElementById('demandesValidees').textContent = demandesValidees;
             
-            document.getElementById('demandesAttente').textContent = App.demandes.filter(d => d.Statut === 'En attente').length;
-            document.getElementById('demandesRefusees').textContent = App.demandes.filter(d => d.Statut === 'Refusée').length;
+            document.getElementById('demandesAttente').textContent = App.demandes.filter(d => d.statut === 'En attente').length;
+            document.getElementById('demandesRefusees').textContent = App.demandes.filter(d => d.statut === 'Refusée').length;
         }
         
         // Statistiques des Retours
         document.getElementById('totalRetours').textContent = App.retours.length;
-        document.getElementById('retoursAttente').textContent = App.retours.filter(r => r.Statut === 'En attente').length;
-        document.getElementById('retoursValides').textContent = App.retours.filter(r => r.Statut === 'Validé' || r.Statut === 'Approuvé').length;
-        document.getElementById('retoursRefuses').textContent = App.retours.filter(r => r.Statut === 'Refusé').length;
+        document.getElementById('retoursAttente').textContent = App.retours.filter(r => r.statut === 'En attente').length;
+        document.getElementById('retoursValides').textContent = App.retours.filter(r => r.statut === 'Validé' || r.statut === 'Approuvé').length;
+        document.getElementById('retoursRefuses').textContent = App.retours.filter(r => r.statut === 'Refusé').length;
         
         // Utiliser les données historiques de la base de données
         const activity = historiques.slice(0, 5).map(h => {
@@ -1380,14 +1380,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('demandesChart').getContext('2d');
         if(window.chart) window.chart.destroy();
         // Calcul des données pour le graphique
-        const demandesEnAttente = App.demandes.filter(d => d.Statut === 'En attente').length;
+        const demandesEnAttente = App.demandes.filter(d => d.statut === 'En attente').length;
         const demandesValidees = App.demandes.filter(d => {
-            const statut = d.Statut.toLowerCase();
+            const statut = d.statut.toLowerCase();
             return statut === 'validée' || statut === 'approuvée' || 
                    statut === 'prêt pour retrait' || statut === 'en fabrication' || 
                    statut === 'attente inter-service';
         }).length;
-        const demandesRefusees = App.demandes.filter(d => d.Statut === 'Refusée').length;
+        const demandesRefusees = App.demandes.filter(d => d.statut === 'Refusée').length;
         
         window.chart = new Chart(ctx, {
             type: 'doughnut',
@@ -1413,7 +1413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('StatusFilter:', statusFilter);
         console.log('App.demandes:', App.demandes);
         if (App.demandes && App.demandes.length > 0) {
-            console.log('Statuts des demandes:', App.demandes.map(d => ({ id: d.id, statut: d.Statut })));
+            console.log('Statuts des demandes:', App.demandes.map(d => ({ id: d.id, statut: d.statut })));
         }
         
         const filtered = App.demandes.filter(d => {
@@ -1421,13 +1421,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusFilter) {
                 if (statusFilter === 'Validée') {
                     // Pour "Validée", inclure aussi les statuts spéciaux
-                    const statut = d.Statut.toLowerCase();
+                    const statut = d.statut.toLowerCase();
                     if (!(statut === 'validée' || statut === 'approuvée' || 
                           statut === 'prêt pour retrait' || statut === 'en fabrication' || 
                           statut === 'attente inter-service')) {
                         return false;
                     }
-                } else if (d.Statut !== statusFilter) {
+                } else if (d.statut !== statusFilter) {
                     return false;
                 }
             }
@@ -1441,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ).join(' ').toLowerCase();
             
             // Rechercher aussi dans le statut et la date
-            const demandeInfo = `${d.Statut || ''} ${d.date || ''}`.toLowerCase();
+            const demandeInfo = `${d.statut || ''} ${d.date || ''}`.toLowerCase();
             
             return searchText.includes(query) || demandeInfo.includes(query);
         });
@@ -1450,12 +1450,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('=== FIN DEBUG ===');
 
         document.getElementById('demandesTableBody').innerHTML = filtered.map(d => {
-            let statutPrincipal = d.Statut;
+            let statutPrincipal = d.statut;
             let actionStock = '';
             const specialStatus = ['prêt pour retrait', 'en fabrication', 'attente inter-service'];
 
             if (specialStatus.includes(statutPrincipal.toLowerCase())) {
-                actionStock = d.Statut;
+                actionStock = d.statut;
                 statutPrincipal = 'Validée'; // On considère que c'est un sous-statut de 'Validée'
             } else if (statutPrincipal.toLowerCase() === 'approuvée') {
                 statutPrincipal = 'Validée';
@@ -1470,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-4 py-3 align-top"><span class="badge ${getBadgeClass(statutPrincipal)}">${statutPrincipal}</span></td>
                 <td class="px-4 py-3 align-top">${actionStock}</td>
                 <td class="px-4 py-3 align-top">
-                    ${d.Statut && d.Statut.trim().toLowerCase() === 'en attente' ? `
+                    ${d.statut && d.statut.trim().toLowerCase() === 'en attente' ? `
                         <button onclick="editDemande(${d.id})" class="text-indigo-600 hover:text-indigo-900 transition-colors">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -1492,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Filtre par statut d'abord
         const filteredRetours = App.retours.filter(r => {
-            if (statusFilter && r.Statut !== statusFilter) return false;
+            if (statusFilter && r.statut !== statusFilter) return false;
             return true;
         });
         
@@ -1508,8 +1508,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     famille: familles,
                     couleur: couleurs,
                     qte: qtes,
-                    date: r.DateRetour,
-                    statut: r.Statut,
+                    date: r.dateretour,
+                    statut: r.statut,
                     id: r.idRetour
                 });
                 return;
@@ -1532,8 +1532,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 famille: familles,
                 couleur: couleurs,
                 qte: qtes,
-                date: r.DateRetour,
-                statut: r.Statut,
+                date: r.dateretour,
+                statut: r.statut,
                 id: r.idRetour
             });
         });
@@ -1802,7 +1802,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const demandeId = document.getElementById('demandeRetourSelect').value;
         console.log('demandeId:', demandeId);
-        console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.Statut !== 'Refusé'));
+        console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.statut !== 'Refusé'));
         retourTemp.forEach(item => {
             const newRetour = {
                 id: App.nextRetourId++,
@@ -1872,7 +1872,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 demandesRetour.forEach(demande => {
                     const refsDemande = demande.echantillons.map(e => e.refEchantillon).sort().join(',');
                     const refsRetour = retourTemp.map(e => e.ref).sort().join(',');
-                    if (refsDemande === refsRetour) demandeId = demande.idDemande;
+                    if (refsDemande === refsRetour) demandeId = demande.iddemande;
                 });
                 if (demandeId) {
                     demandeSelect.value = demandeId;
@@ -1975,7 +1975,7 @@ function loadUserBorrowedSamples() {
     select.innerHTML = '<option value=\"">Choisir un échantillon...</option>';
     // Ici, tu dois parcourir les retours validés ou les échantillons empruntés
     retours.forEach(retour => {
-        if (retour.Statut === 'Validée' || retour.Statut === 'En attente') {
+        if (retour.statut === 'Validée' || retour.statut === 'En attente') {
             retour.echantillons.forEach(e => {
                 select.innerHTML += `<option value=\"${e.ref}\">${e.ref} - ${e.famille} - ${e.couleur}</option>`;
             });
@@ -2036,7 +2036,7 @@ document.getElementById('echantillonSelect').addEventListener('change', function
 
 document.getElementById('echantillonRetourSelect').addEventListener('change', function() {
     const demandeSelect = document.getElementById('demandeRetourSelect');
-    const demande = demandesRetour.find(d => d.idDemande == demandeSelect.value);
+    const demande = demandesRetour.find(d => d.iddemande == demandeSelect.value);
     const selectedOptions = Array.from(this.selectedOptions);
 
     if (selectedOptions.length === 1 && demande) {
@@ -2212,7 +2212,7 @@ function addDemandeTemp() {
     
     // Vérifier si l'échantillon est déjà dans une demande en attente
     const existingDemande = App.demandes.find(d => 
-        d.Statut === 'En attente' && 
+        d.statut === 'En attente' && 
         d.echantillons.some(e => e.ref === sample.RefEchantillon)
     );
     
@@ -2262,7 +2262,7 @@ function addRetourTemp() {
         ajouterActionHistorique('Erreur Validation', '', 'Tentative d\'ajout de retour sans sélection de demande');
         return;
     }
-    const demande = demandesRetour.find(d => d.idDemande == demandeSelect.value);
+    const demande = demandesRetour.find(d => d.iddemande == demandeSelect.value);
     if (!demande) return;
 
     const selectedOptions = Array.from(echantillonSelect.selectedOptions);
@@ -2308,7 +2308,7 @@ function saveDemande() {
     // Vérifier les doublons avec les demandes existantes
     const duplicates = demandeTemp.filter(item => {
         return App.demandes.some(d => 
-            d.Statut === 'En attente' && 
+            d.statut === 'En attente' && 
             d.echantillons.some(e => e.ref === item.ref)
         );
     });
@@ -2414,7 +2414,7 @@ function saveRetour() {
 
     const demandeId = document.getElementById('demandeRetourSelect').value;
     console.log('demandeId:', demandeId);
-    console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.Statut !== 'Refusé'));
+    console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.statut !== 'Refusé'));
     retourTemp.forEach(item => {
         const newRetour = {
             id: App.nextRetourId++,
@@ -2584,9 +2584,9 @@ function envoyerRetourServeur() {
         // Debug :
         console.log('demandeId:', demandeId);
         console.log('App.retours:', App.retours);
-        console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.Statut !== 'Refusé'));
+        console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.statut !== 'Refusé'));
         // Vérifie si un retour existe déjà pour cette demande (hors refusé)
-        const dejaRetour = App.retours.some(r => String(r.idDemande) === String(demandeId) && r.Statut !== 'Refusé');
+        const dejaRetour = App.retours.some(r => String(r.idDemande) === String(demandeId) && r.statut !== 'Refusé');
         if (dejaRetour) {
             showNotification('Un retour a déjà été effectué pour cette demande.', 'error');
             ajouterActionHistorique('Erreur Validation', '', `Tentative de retour pour demande ${demandeId} déjà traitée`);
@@ -2613,7 +2613,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Récupère les demandes déjà utilisées dans un retour (hors refusé)
         const demandesAvecRetour = new Set();
         App.retours.forEach(retour => {
-            if (retour.idDemande && retour.Statut !== 'Refusé') {
+            if (retour.idDemande && retour.statut !== 'Refusé') {
                 demandesAvecRetour.add(String(retour.idDemande));
             }
         });
@@ -2622,15 +2622,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Récupère les refs déjà retournés pour cette demande
             const dejaRetournés = new Set();
             App.retours.forEach(r => {
-                if (r.idDemande == demande.idDemande && r.Statut !== 'Refusé') {
+                if (r.idDemande == demande.iddemande && r.statut !== 'Refusé') {
                     r.echantillons.forEach(e => dejaRetournés.add(e.ref));
                 }
             });
             // Filtre les échantillons restants à retourner
             const echantillonsRestants = demande.echantillons.filter(e => !dejaRetournés.has(e.refEchantillon));
             const opt = document.createElement('option');
-            opt.value = demande.idDemande;
-            opt.textContent = `Demande #${demande.idDemande} - ${demande.DateDemande} - ${demande.Statut}`;
+            opt.value = demande.iddemande;
+            opt.textContent = `Demande #${demande.iddemande} - ${demande.DateDemande} - ${demande.Statut}`;
             // Désactive SEULEMENT si plus aucun échantillon à retourner
             if (echantillonsRestants.length === 0) {
                 opt.disabled = true;
@@ -2641,7 +2641,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Quand on sélectionne une demande, remplir le select des échantillons
         demandeSelect.addEventListener('change', function() {
             echantillonSelect.innerHTML = '';
-            const demande = demandesRetour.find(d => d.idDemande == this.value);
+            const demande = demandesRetour.find(d => d.iddemande == this.value);
             if (demande && demande.echantillons.length > 0) {
                 echantillonSelect.disabled = true;
                 // Récupère toutes les familles, couleurs, stocks distincts
@@ -2715,25 +2715,25 @@ document.getElementById('totalDemandes').parentElement.parentElement.onclick = f
     showModalInfo('Total Demandes : ' + App.demandes.length);
 };
 document.getElementById('demandesValidees').parentElement.parentElement.onclick = function() {
-    showModalInfo('Demandes Validées : ' + App.demandes.filter(d => d.Statut === 'Validée' || d.Statut === 'Approuvée').length);
+    showModalInfo('Demandes Validées : ' + App.demandes.filter(d => d.statut === 'Validée' || d.statut === 'Approuvée').length);
 };
 document.getElementById('demandesAttente').parentElement.parentElement.onclick = function() {
-    showModalInfo('Demandes en Attente : ' + App.demandes.filter(d => d.Statut === 'En attente').length);
+    showModalInfo('Demandes en Attente : ' + App.demandes.filter(d => d.statut === 'En attente').length);
 };
 document.getElementById('demandesRefusees').parentElement.parentElement.onclick = function() {
-    showModalInfo('Demandes Refusées : ' + App.demandes.filter(d => d.Statut === 'Refusée').length);
+    showModalInfo('Demandes Refusées : ' + App.demandes.filter(d => d.statut === 'Refusée').length);
 };
 document.getElementById('totalRetours').parentElement.parentElement.onclick = function() {
     showModalInfo('Total Retours : ' + App.retours.length);
 };
 document.getElementById('retoursAttente').parentElement.parentElement.onclick = function() {
-    showModalInfo('Retours en Attente : ' + App.retours.filter(r => r.Statut === 'En attente').length);
+    showModalInfo('Retours en Attente : ' + App.retours.filter(r => r.statut === 'En attente').length);
 };
 document.getElementById('retoursValides').parentElement.parentElement.onclick = function() {
-    showModalInfo('Retours Validés : ' + App.retours.filter(r => r.Statut === 'Validé' || r.Statut === 'Approuvé').length);
+    showModalInfo('Retours Validés : ' + App.retours.filter(r => r.statut === 'Validé' || r.statut === 'Approuvé').length);
 };
 document.getElementById('retoursRefuses').parentElement.parentElement.onclick = function() {
-    showModalInfo('Retours Refusés : ' + App.retours.filter(r => r.Statut === 'Refusé').length);
+    showModalInfo('Retours Refusés : ' + App.retours.filter(r => r.statut === 'Refusé').length);
 };
 // ...
 
@@ -2768,12 +2768,12 @@ console.log('retourTemp:', retourTemp);
 console.log('App.retours:', App.retours);
 let demandeId = document.getElementById('demandeRetourSelect').value;
 console.log('demandeId:', demandeId);
-console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.Statut !== 'Refusé'));
+console.log('Résultat du test:', App.retours.some(r => String(r.idDemande) === String(demandeId) && r.statut !== 'Refusé'));
 
 console.log(
   'Résultat du test:',
   App.retours.some(
-    r => String(r.idDemande) === String(document.getElementById('demandeRetourSelect').value) && r.Statut !== 'Refusé'
+    r => String(r.idDemande) === String(document.getElementById('demandeRetourSelect').value) && r.statut !== 'Refusé'
   )
 );
 
@@ -2813,10 +2813,10 @@ document.getElementById('confirmDeleteRetourBtn').onclick = function() {
 // SUPPRIMÉ : error_log('delete_retour_id=' . var_export($_POST['delete_retour_id'], true));
 
 // Quand tu ouvres la modale de retour pour une demande
-const demande = demandesRetour.find(d => d.idDemande == demandeId);
+const demande = demandesRetour.find(d => d.iddemande == demandeId);
 const dejaRetournés = new Set();
 App.retours.forEach(r => {
-    if (r.idDemande == demandeId && r.Statut !== 'Refusé') {
+    if (r.idDemande == demandeId && r.statut !== 'Refusé') {
         r.echantillons.forEach(e => dejaRetournés.add(e.ref));
     }
 });
