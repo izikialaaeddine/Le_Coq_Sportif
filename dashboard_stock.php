@@ -267,7 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     // 2. Récupérer les Fabrications et les formater comme des demandes
     $fabrications_as_demandes = [];
-    $resFab = $conn->query("SELECT f.idLot, f.DateCreation, f.StatutFabrication, f.idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC");
+    $resFab = $conn->query("SELECT f.idLot, f.datecreation AS DateCreation, f.statutfabrication AS StatutFabrication, f.idutilisateur AS idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, f.statutfabrication, f.idutilisateur, u.nom, u.prenom ORDER BY f.datecreation DESC");
     if ($resFab) {
         while($lot = $resFab->fetch_assoc()) {
             $lot_details = [];
@@ -318,7 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                             FROM Fabrication f 
                             LEFT JOIN Echantillon e ON f.RefEchantillon = e.RefEchantillon 
                             WHERE f.idLot IS NOT NULL AND f.idLot != ''
-                            ORDER BY f.DateCreation DESC, f.idLot DESC");
+                            ORDER BY f.datecreation DESC, f.idLot DESC");
     $groupedFabrications = [];
     if ($resFab) {
     while ($row = $resFab->fetch_assoc()) {
@@ -459,13 +459,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     switch ($type) {
         case 'available_samples':
-            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, DateCreation FROM Echantillon WHERE Statut = 'disponible' ORDER BY DateCreation DESC";
+            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'disponible' ORDER BY datecreation DESC";
             break;
         case 'borrowed_samples':
-            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, DateCreation FROM Echantillon WHERE Statut = 'emprunte' ORDER BY DateCreation DESC";
+            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, datecreation AS DateCreation FROM Echantillon WHERE statut = 'emprunte' ORDER BY datecreation DESC";
             break;
         case 'fabrication_samples':
-            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, DateCreation FROM Echantillon WHERE Statut = 'En fabrication' ORDER BY DateCreation DESC";
+            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'En fabrication' ORDER BY datecreation DESC";
             break;
         case 'pending_requests':
             $query = "SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.typedemande = 'demande' AND d.statut = 'En attente' ORDER BY d.datedemande DESC";
@@ -1104,7 +1104,7 @@ function getTextColor($bgHex) {
 }
 
 $echantillons = [];
-$res = $conn->query("SELECT * FROM Echantillon ORDER BY DateCreation DESC");
+$res = $conn->query("SELECT * FROM Echantillon ORDER BY datecreation DESC");
 while ($row = $res->fetch_assoc()) {
     $echantillons[] = $row;
 }
@@ -1781,7 +1781,7 @@ while ($row = $resFab->fetch_assoc()) {
 
                                     // 2. Récupérer les Fabrications et les formater comme des demandes
                                     $fabrications_as_demandes = [];
-                                    $resFab = $conn->query("SELECT f.idLot, f.DateCreation, f.StatutFabrication, f.idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC");
+                                    $resFab = $conn->query("SELECT f.idLot, f.datecreation AS DateCreation, f.statutfabrication AS StatutFabrication, f.idutilisateur AS idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, f.statutfabrication, f.idutilisateur, u.nom, u.prenom ORDER BY f.datecreation DESC");
                                     if ($resFab) {
                                         while($lot = $resFab->fetch_assoc()) {
                                             $lot_details = [];
