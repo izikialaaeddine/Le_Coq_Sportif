@@ -1777,14 +1777,14 @@ if ($resFab) {
                                     if ($res) {
                                     while ($row = $res->fetch_assoc()) {
                                         $row['echantillons'] = [];
-                                        $idDemande = $row['idDemande'] ?? $row['iddemande'] ?? '';
-                                        $res2 = $conn->query("SELECT de.refechantillon AS refEchantillon, de.qte AS qte, e.famille AS famille, e.couleur AS couleur, e.taille AS taille FROM DemandeEchantillon de LEFT JOIN Echantillon e ON de.refechantillon = e.refechantillon WHERE de.iddemande = " . intval($idDemande));
+                                        $idDemande = $row['idDemande'];
+                                        $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE idDemande = " . intval($idDemande));
                                         if($res2) {
                                             while ($e = $res2->fetch_assoc()) {
                                                 $row['echantillons'][] = $e;
                                             }
                                         }
-                                            $row['request_date'] = $row['DateDemande']; // Clé de tri commune
+                                            $row['request_date'] = $row['DateDemande'] ?? ''; // Clé de tri commune
                                             $demandes_et_retours[] = $row;
                                     }
                                     }
@@ -1798,14 +1798,14 @@ if ($resFab) {
                                     if ($resRetours) {
                                         while ($row = $resRetours->fetch_assoc()) {
                                             $row['echantillons'] = [];
-                                            $idRetour = $row['idRetour'] ?? $row['idretour'] ?? '';
-                                            $res2 = $conn->query("SELECT re.refechantillon AS refEchantillon, re.qte AS qte, e.famille AS famille, e.couleur AS couleur, e.taille AS taille FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.refechantillon = e.refechantillon WHERE re.idretour = " . intval($idRetour));
+                                            $idRetour = $row['idRetour'];
+                                            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idRetour = " . intval($idRetour));
                                             if ($res2) {
                                                 while ($e = $res2->fetch_assoc()) {
                                                     $row['echantillons'][] = $e;
                                                 }
                                             }
-                                            $row['request_date'] = $row['DateRetour'] ?? $row['dateretour'] ?? '';
+                                            $row['request_date'] = $row['DateRetour'] ?? '';
                                             $row['TypeDemande'] = 'retour'; // Pour l'affichage/filtrage JS
                                             $retours[] = $row;
                                         }
@@ -1817,11 +1817,11 @@ if ($resFab) {
                                     if ($resFab) {
                                         while($lot = $resFab->fetch_assoc()) {
                                             $lot_details = [];
-                                            $idLot = $lot['idLot'] ?? $lot['idlot'] ?? '';
-                                            $resDet = $conn->query("SELECT fab.refechantillon AS RefEchantillon, fab.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.refechantillon = e.refechantillon WHERE fab.idlot = '" . $conn->real_escape_string($idLot) . "'");
+                                            $idLot = $lot['idLot'];
+                                            $resDet = $conn->query("SELECT * FROM Fabrication WHERE idLot = '" . $conn->real_escape_string($idLot) . "'");
                                             if ($resDet) {
                                                 while($det = $resDet->fetch_assoc()) {
-                                                    $lot_details[] = ['refEchantillon' => $det['RefEchantillon'] ?? $det['refechantillon'] ?? '', 'famille' => $det['Famille'] ?? $det['famille'] ?? '', 'couleur' => $det['Couleur'] ?? $det['couleur'] ?? '', 'qte' => $det['Qte'] ?? $det['qte'] ?? 0];
+                                                    $lot_details[] = ['refEchantillon' => $det['refEchantillon'], 'famille' => $det['famille'] ?? '', 'couleur' => $det['couleur'] ?? '', 'qte' => $det['qte'] ?? 0];
                                                 }
                                             }
                                             $fabrications_as_demandes[] = [
@@ -1829,10 +1829,10 @@ if ($resFab) {
                                                 'NomDemandeur' => $lot['NomDemandeur'] ?? $lot['nom'] ?? '',
                                                 'PrenomDemandeur' => $lot['PrenomDemandeur'] ?? $lot['prenom'] ?? '',
                                                 'echantillons' => $lot_details,
-                                                'DateDemande' => formatDateMoinsUneHeure($lot['DateCreation'] ?? $lot['datecreation'] ?? ''),
-                                                'Statut' => $lot['StatutFabrication'] ?? $lot['statutfabrication'] ?? '',
+                                                'DateDemande' => formatDateMoinsUneHeure($lot['DateCreation'] ?? ''),
+                                                'Statut' => $lot['StatutFabrication'] ?? '',
                                                 'TypeDemande' => 'fabrication',
-                                                'request_date' => formatDateMoinsUneHeure($lot['DateCreation'] ?? $lot['datecreation'] ?? ''),
+                                                'request_date' => formatDateMoinsUneHeure($lot['DateCreation'] ?? ''),
                                             ];
                                         }
                                     }
@@ -1852,19 +1852,15 @@ if ($resFab) {
                                             <td class="px-4 py-3 text-sm text-gray-700">
                                                 <?php foreach ($demande['echantillons'] as $e): ?>
                                                     <div>
-                                                        <?php 
-                                                        $ref = $e['refEchantillon'] ?? $e['RefEchantillon'] ?? $e['refechantillon'] ?? '';
-                                                        $fam = $e['famille'] ?? $e['Famille'] ?? '';
-                                                        ?>
-                                                        <?= htmlspecialchars($ref) ?>
-                                                        <?php if ($fam): ?> (<?= htmlspecialchars($fam) ?>)<?php endif; ?>
+                                                        <?= htmlspecialchars($e['refEchantillon'] ?? '') ?>
+                                                        <?php if (isset($e['famille'])): ?> (<?= htmlspecialchars($e['famille']) ?>)<?php endif; ?>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-700">
                                                 <?php if (strtolower(trim($demande['TypeDemande'] ?? '')) === 'retour'): ?>
                                                 <?php foreach ($demande['echantillons'] as $e): ?>
-                                                        <div><?= htmlspecialchars($e['qte'] ?? $e['Qte'] ?? '') ?></div>
+                                                        <div><?= htmlspecialchars($e['qte'] ?? '') ?></div>
                                                 <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <?php foreach ($demande['echantillons'] as $e): ?>
