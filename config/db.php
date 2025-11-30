@@ -100,10 +100,18 @@ if ($isPostgres) {
             }
             
             public function get_result() {
+                // Pour PDO, on doit d'abord exécuter si pas déjà fait
+                if (!$this->executed) {
+                    $this->execute();
+                }
                 return $this;
             }
             
             public function fetch_assoc() {
+                // Pour PDO, on doit d'abord exécuter si pas déjà fait
+                if (!$this->executed) {
+                    $this->execute();
+                }
                 return $this->stmt->fetch(PDO::FETCH_ASSOC);
             }
             
