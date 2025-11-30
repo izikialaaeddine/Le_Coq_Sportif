@@ -397,7 +397,7 @@ if ($resRetours) {
 // Les retours sont maintenant gérés dans leur propre section
 
 // Stats Fabrications - Debug complet pour voir toutes les données
-$debugQuery = "SELECT statutfabrication AS StatutFabrication, idLot, COUNT(*) as count FROM Fabrication GROUP BY statutfabrication, idLot ORDER BY statutfabrication";
+$debugQuery = "SELECT statutfabrication AS StatutFabrication, idlot AS idLot, COUNT(*) as count FROM Fabrication GROUP BY statutfabrication, idlot ORDER BY statutfabrication";
 $debugRes = $conn->query($debugQuery);
 if ($debugRes) {
     error_log("=== DEBUG FABRICATIONS ===");
@@ -408,7 +408,7 @@ if ($debugRes) {
 }
 
 // Stats Fabrications - Ajout des statistiques des fabrications avec debug
-$resFabrications = $conn->query("SELECT statutfabrication AS StatutFabrication, COUNT(DISTINCT idLot) as count FROM Fabrication WHERE idLot IS NOT NULL AND idLot != '' GROUP BY statutfabrication");
+$resFabrications = $conn->query("SELECT statutfabrication AS StatutFabrication, COUNT(DISTINCT idlot) as count FROM Fabrication WHERE idlot IS NOT NULL AND idlot != '' GROUP BY statutfabrication");
 if ($resFabrications) {
     while($row = $resFabrications->fetch_assoc()) {
         $status = strtolower(trim($row['StatutFabrication']));
@@ -509,10 +509,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $query = "SELECT r.idretour AS idDemande, r.dateretour AS DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.statut AS Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.statut = 'Refusé' ORDER BY r.dateretour DESC";
             break;
         case 'pending_fabrications':
-            $query = "SELECT f.idLot, f.datecreation AS DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.statutfabrication AS StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.statutfabrication IN ('En attente', 'En cours') AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, u.nom, u.prenom, f.statutfabrication ORDER BY f.datecreation DESC";
+            $query = "SELECT f.idlot AS idLot, f.datecreation AS DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.statutfabrication AS StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.statutfabrication IN ('En attente', 'En cours') AND f.idlot IS NOT NULL AND f.idlot != '' GROUP BY f.idlot, f.datecreation, u.nom, u.prenom, f.statutfabrication ORDER BY f.datecreation DESC";
             break;
         case 'completed_fabrications':
-            $query = "SELECT f.idLot, f.datecreation AS DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.statutfabrication AS StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.statutfabrication = 'Terminée' AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, u.nom, u.prenom, f.statutfabrication ORDER BY f.datecreation DESC";
+            $query = "SELECT f.idlot AS idLot, f.datecreation AS DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.statutfabrication AS StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.statutfabrication = 'Terminée' AND f.idlot IS NOT NULL AND f.idlot != '' GROUP BY f.idlot, f.datecreation, u.nom, u.prenom, f.statutfabrication ORDER BY f.datecreation DESC";
             break;
     }
 
@@ -527,7 +527,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                         $res2 = $conn->query("SELECT re.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, re.qte AS qte FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.refechantillon = e.refechantillon WHERE re.idretour = " . $row['idDemande']);
                     } elseif (strpos($type, 'fabrications') !== false) {
                         // Pour les fabrications, utiliser la table Fabrication
-                        $res2 = $conn->query("SELECT f.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, f.qte AS qte FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idLot = '" . $conn->real_escape_string($row['idDemande']) . "'");
+                        $res2 = $conn->query("SELECT f.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, f.qte AS qte FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idlot = '" . $conn->real_escape_string($row['idDemande']) . "'");
                     } else {
                         // Pour les autres demandes, utiliser DemandeEchantillon
                         $res2 = $conn->query("SELECT refechantillon AS refEchantillon, famille, couleur, qte FROM DemandeEchantillon WHERE iddemande = " . $row['idDemande']);
