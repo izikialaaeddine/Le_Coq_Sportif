@@ -30,9 +30,9 @@ if ($isPostgres) {
         $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_TIMEOUT => 5,
-            PDO::ATTR_PERSISTENT => false, // Pas de connexion persistante pour éviter les problèmes
+            PDO::ATTR_EMULATE_PREPARES => true, // TRUE pour meilleures performances avec PostgreSQL
+            PDO::ATTR_TIMEOUT => 3, // Timeout réduit
+            PDO::ATTR_PERSISTENT => false,
             PDO::ATTR_STRINGIFY_FETCHES => false,
         ]);
         
@@ -87,6 +87,13 @@ if ($isPostgres) {
                 return true;
             }
             
+            private $bind_result_vars = [];
+            
+            public function bind_result(&...$vars) {
+                $this->bind_result_vars = $vars;
+                return true;
+            }
+            
             public function execute() {
                 if (!empty($this->params)) {
                     foreach ($this->params as $index => $param) {
@@ -114,7 +121,19 @@ if ($isPostgres) {
                 if (!$this->executed) {
                     $this->execute();
                 }
-                return $this->stmt->fetch(PDO::FETCH_ASSOC);
+                $row = $this->stmt->fetch(PDO::FETCH_ASSOC);
+                // Si bind_result a été appelé, remplir les variables
+                if ($row && !empty($this->bind_result_vars)) {
+                    $values = array_values($row);
+                    foreach ($this->bind_result_vars as $index => &$var) {
+                        $var = $values[$index] ?? null;
+                    }
+                }
+                return $row;
+            }
+            
+            public function fetch() {
+                return $this->fetch_assoc();
             }
             
             public function fetch_all($mode = null) {
@@ -151,8 +170,8 @@ if ($isPostgres) {
     }
 } else {
     // Connexion MySQL (local)
-    $conn = new mysqli($host, $user, $pass, $db);
-    if ($conn->connect_error) {
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
         die('Erreur de connexion MySQL: ' . $conn->connect_error);
     }
 }

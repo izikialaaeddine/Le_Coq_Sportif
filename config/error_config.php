@@ -24,12 +24,20 @@ ini_set('opcache.revalidate_freq', 60);
 ini_set('expose_php', 0);
 
 // Optimisations mémoire
-ini_set('memory_limit', '256M');
-ini_set('max_execution_time', 30);
+ini_set('memory_limit', '128M');
+ini_set('max_execution_time', 15);
 
-// Compression de sortie
-if (extension_loaded('zlib') && !ob_get_level()) {
-    ob_start('ob_gzhandler');
+// Compression de sortie (désactivée pour éviter les problèmes de performance)
+// if (extension_loaded('zlib') && !ob_get_level()) {
+//     ob_start('ob_gzhandler');
+// }
+
+// Désactiver les sessions automatiques si non utilisées
+if (session_status() === PHP_SESSION_NONE) {
+    // Ne pas démarrer la session automatiquement
 }
+
+// Optimiser les requêtes
+ini_set('default_socket_timeout', 5);
 ?>
 

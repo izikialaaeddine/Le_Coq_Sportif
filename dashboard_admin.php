@@ -43,8 +43,9 @@ if (isset($_POST['action'])) {
             $stmtOld = $conn->prepare("SELECT motdepasse as MotDePasse FROM Utilisateur WHERE idutilisateur=?");
             $stmtOld->bind_param("i", $_POST['idUtilisateur']);
             $stmtOld->execute();
-            $stmtOld->bind_result($oldHash);
-            $stmtOld->fetch();
+            $resultOld = $stmtOld->get_result();
+            $rowOld = $resultOld->fetch_assoc();
+            $oldHash = $rowOld['MotDePasse'] ?? $rowOld['motdepasse'] ?? '';
             $stmtOld->close();
             
             $newPass = $_POST['MotDePasse'];
@@ -118,8 +119,9 @@ if (isset($_POST['action'])) {
             $stmtOld = $conn->prepare("SELECT motdepasse as MotDePasse FROM Utilisateur WHERE idutilisateur=?");
             $stmtOld->bind_param("i", $id);
             $stmtOld->execute();
-            $stmtOld->bind_result($oldHash);
-            $stmtOld->fetch();
+            $resultOld = $stmtOld->get_result();
+            $rowOld = $resultOld->fetch_assoc();
+            $oldHash = $rowOld['MotDePasse'] ?? $rowOld['motdepasse'] ?? '';
             $stmtOld->close();
             
             if (password_verify($newPass, $oldHash)) {
