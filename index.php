@@ -1,6 +1,6 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
+// Configuration d'erreurs et performance
+require_once __DIR__ . '/config/error_config.php';
 session_start();
 require_once __DIR__ . '/config/db.php';
 

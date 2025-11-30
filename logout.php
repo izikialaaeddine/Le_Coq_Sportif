@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config/error_config.php';
 session_start();
 session_destroy();
 header('Location: index.php');

@@ -1,11 +1,10 @@
 <?php
-
-
-
+require_once __DIR__ . '/config/error_config.php';
 date_default_timezone_set('Europe/Paris');
 $dateDemande = date('Y-m-d H:i:s', strtotime('-1 hour'));
 
 session_start();
+require_once __DIR__ . '/config/db.php';
 
 // La session est bonne, on la garde simplement
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 2) { // 2 = Chef de Groupe

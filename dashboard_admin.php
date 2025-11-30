@@ -1,8 +1,6 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
-
-require_once 'config/db.php';
+require_once __DIR__ . '/config/error_config.php';
+require_once __DIR__ . '/config/db.php';
 session_start();
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 4) {

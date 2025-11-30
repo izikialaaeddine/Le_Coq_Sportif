@@ -20,18 +20,27 @@ RewriteEngine On
     Deny from all
 </FilesMatch>
 
-# Protection contre les injections
+# Désactiver l'affichage des erreurs PHP (GLOBAL)
 <IfModule mod_php7.c>
     php_flag display_errors Off
+    php_flag display_startup_errors Off
     php_flag log_errors On
+    php_value error_reporting 0
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+    php_flag log_errors On
+    php_value error_reporting 0
 </IfModule>
 
 # Compression GZIP pour améliorer les performances
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
 
-# Cache des fichiers statiques
+# Cache des fichiers statiques (OPTIMISÉ)
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType image/jpg "access plus 1 year"
@@ -39,8 +48,26 @@ RewriteEngine On
     ExpiresByType image/png "access plus 1 year"
     ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/json "access plus 1 hour"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Headers de cache pour améliorer les performances
+<IfModule mod_headers.c>
+    # Cache les fichiers statiques
+    <FilesMatch "\.(jpg|jpeg|png|gif|svg|css|js|woff|woff2)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+    # Pas de cache pour les fichiers PHP
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
 </IfModule>
 
 # Protection contre le hotlinking des images (désactivé pour Railway)

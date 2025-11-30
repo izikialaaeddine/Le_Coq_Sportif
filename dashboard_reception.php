@@ -1,9 +1,8 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
+require_once __DIR__ . '/config/error_config.php';
 session_start();
 date_default_timezone_set('Europe/Paris');
+require_once __DIR__ . '/config/db.php';
 
 // Redirection si non connecté ou mauvais rôle AVANT toute sortie
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 3) {
