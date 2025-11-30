@@ -13,8 +13,6 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 2) { // 2 = Chef
 }
 
 $currentUser = $_SESSION['user'];
-require_once 'config/db.php';
-$conn->query("SET time_zone = '+01:00'");
 
 // Helper function to add history entries (copiée du dashboard stock)
 function ajouterHistorique($conn, $idUtilisateur, $refEchantillon, $typeAction, $description, $dateAction = null) {

@@ -6,12 +6,10 @@ require_once __DIR__ . '/config/db.php';
 
 // Redirection si non connecté ou mauvais rôle AVANT toute sortie
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 3) {
-    header('Location: index.php');
+    header('Location: index.php', true, 302);
     exit;
 }
 
-require_once 'config/db.php';
-$conn->query("SET time_zone = '+01:00'");
 $user = $_SESSION['user'];
 
 // Notifications (stockées en session)
