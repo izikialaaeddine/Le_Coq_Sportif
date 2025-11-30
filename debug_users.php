@@ -18,11 +18,12 @@ if (isset($conn)) {
 echo "<h2>Liste des Utilisateurs:</h2>";
 
 try {
-    $query = "SELECT u.idUtilisateur, u.Nom, u.Prenom, u.Identifiant, r.Role 
+    // PostgreSQL convertit les noms en minuscules, utiliser des alias
+    $query = "SELECT u.idutilisateur as idUtilisateur, u.nom as Nom, u.prenom as Prenom, u.identifiant as Identifiant, r.role as Role 
               FROM Utilisateur u 
-              LEFT JOIN Role r ON u.idRole = r.idRole 
-              WHERE u.Identifiant IS NOT NULL AND u.Identifiant != '' 
-              ORDER BY u.Nom, u.Prenom";
+              LEFT JOIN Role r ON u.idrole = r.idrole 
+              WHERE u.identifiant IS NOT NULL AND u.identifiant != '' 
+              ORDER BY u.nom, u.prenom";
     
     echo "Requête SQL: <code>" . htmlspecialchars($query) . "</code><br><br>";
     
@@ -41,15 +42,21 @@ try {
         echo "<strong>Nombre d'utilisateurs trouvés: " . count($users) . "</strong><br><br>";
         
         if (count($users) > 0) {
+            echo "<h3>Données brutes (debug):</h3>";
+            echo "<pre>";
+            print_r($users);
+            echo "</pre>";
+            echo "<hr>";
+            
             echo "<table border='1' cellpadding='10' style='border-collapse: collapse;'>";
             echo "<tr><th>ID</th><th>Nom</th><th>Prénom</th><th>Identifiant</th><th>Rôle</th></tr>";
             foreach ($users as $user) {
                 echo "<tr>";
-                echo "<td>" . htmlspecialchars($user['idUtilisateur'] ?? 'N/A') . "</td>";
-                echo "<td>" . htmlspecialchars($user['Nom'] ?? 'N/A') . "</td>";
-                echo "<td>" . htmlspecialchars($user['Prenom'] ?? 'N/A') . "</td>";
-                echo "<td>" . htmlspecialchars($user['Identifiant'] ?? 'N/A') . "</td>";
-                echo "<td>" . htmlspecialchars($user['Role'] ?? 'N/A') . "</td>";
+                echo "<td>" . htmlspecialchars($user['idUtilisateur'] ?? $user['idutilisateur'] ?? 'N/A') . "</td>";
+                echo "<td>" . htmlspecialchars($user['Nom'] ?? $user['nom'] ?? 'N/A') . "</td>";
+                echo "<td>" . htmlspecialchars($user['Prenom'] ?? $user['prenom'] ?? 'N/A') . "</td>";
+                echo "<td>" . htmlspecialchars($user['Identifiant'] ?? $user['identifiant'] ?? 'N/A') . "</td>";
+                echo "<td>" . htmlspecialchars($user['Role'] ?? $user['role'] ?? 'N/A') . "</td>";
                 echo "</tr>";
             }
             echo "</table>";

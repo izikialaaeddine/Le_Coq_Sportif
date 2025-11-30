@@ -7,7 +7,9 @@ require_once __DIR__ . '/config/db.php';
 // Fetch all users with their credentials for display
 $all_users = [];
 try {
-    $users_query = $conn->query("SELECT u.idUtilisateur, u.Nom, u.Prenom, u.Identifiant, r.Role FROM Utilisateur u LEFT JOIN Role r ON u.idRole = r.idRole WHERE u.Identifiant IS NOT NULL AND u.Identifiant != '' ORDER BY u.Nom, u.Prenom");
+    // PostgreSQL convertit les noms de colonnes en minuscules sauf si entre guillemets
+    // Utiliser des alias en minuscules pour compatibilité
+    $users_query = $conn->query("SELECT u.idutilisateur as idUtilisateur, u.nom as Nom, u.prenom as Prenom, u.identifiant as Identifiant, r.role as Role FROM Utilisateur u LEFT JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant IS NOT NULL AND u.identifiant != '' ORDER BY u.nom, u.prenom");
     if ($users_query) {
         // Compatibilité avec PDO et MySQLi
         if (method_exists($users_query, 'fetch_all')) {
@@ -36,7 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identifiant = trim($_POST['identifiant'] ?? '');
     $mdp = trim($_POST['mdp'] ?? '');
     if ($identifiant && $mdp) {
-        $stmt = $conn->prepare('SELECT u.*, r.Role FROM Utilisateur u JOIN Role r ON u.idRole = r.idRole WHERE u.Identifiant = ?');
+        // PostgreSQL: utiliser des noms de colonnes en minuscules avec alias
+        $stmt = $conn->prepare('SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom, r.role as Role FROM Utilisateur u JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant = ?');
         $stmt->bind_param('s', $identifiant);
         $stmt->execute();
         $result = $stmt->get_result();
