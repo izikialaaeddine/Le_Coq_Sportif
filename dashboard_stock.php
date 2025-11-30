@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
     )
     UNION ALL
-    (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
+    (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refechantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
@@ -428,7 +428,7 @@ WHERE d.typedemande = 'demande'
 GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
 )
 UNION ALL
-(SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
+(SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refechantillon, ', ') as details
 FROM Demande d
 JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
 JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
@@ -510,7 +510,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                         $res2 = $conn->query("SELECT f.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, f.qte AS qte FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idLot = '" . $conn->real_escape_string($row['idDemande']) . "'");
                     } else {
                         // Pour les autres demandes, utiliser DemandeEchantillon
-                        $res2 = $conn->query("SELECT refEchantillon, famille, couleur, qte FROM DemandeEchantillon WHERE idDemande = " . $row['idDemande']);
+                        $res2 = $conn->query("SELECT refechantillon AS refEchantillon, famille, couleur, qte FROM DemandeEchantillon WHERE iddemande = " . $row['idDemande']);
                     }
                     if ($res2) while ($e = $res2->fetch_assoc()) $row['echantillons'][] = $e;
                 }
@@ -833,7 +833,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Vérifier si c'est bien une demande de retour en attente
-        $stmt_check = $conn->prepare("SELECT Statut FROM Demande WHERE idDemande = ? AND TypeDemande = 'retour'");
+        $stmt_check = $conn->prepare("SELECT statut AS Statut FROM Demande WHERE iddemande = ? AND typedemande = 'retour'");
         $stmt_check->bind_param("i", $idDemande);
         $stmt_check->execute();
         $res_check = $stmt_check->get_result();
@@ -848,7 +848,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // 2. Récupérer les échantillons de la demande de retour
         $echantillons_a_retourner = [];
-        $stmt_items = $conn->prepare("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE idDemande = ?");
+        $stmt_items = $conn->prepare("SELECT refechantillon AS refEchantillon, qte FROM DemandeEchantillon WHERE iddemande = ?");
         $stmt_items->bind_param("i", $idDemande);
         $stmt_items->execute();
         $result_items = $stmt_items->get_result();
