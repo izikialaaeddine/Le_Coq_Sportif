@@ -7,25 +7,77 @@ echo "<h1>Test de Connexion à Supabase</h1>";
 
 // Afficher les variables d'environnement (sans le mot de passe complet)
 echo "<h2>Variables d'Environnement:</h2>";
-echo "DB_HOST: " . (getenv('DB_HOST') ?: 'NON DÉFINI') . "<br>";
-echo "DB_NAME: " . (getenv('DB_NAME') ?: 'NON DÉFINI') . "<br>";
-echo "DB_USER: " . (getenv('DB_USER') ?: 'NON DÉFINI') . "<br>";
-echo "DB_PASS: " . (getenv('DB_PASS') ? str_repeat('*', strlen(getenv('DB_PASS'))) : 'NON DÉFINI') . "<br>";
-echo "DB_PORT: " . (getenv('DB_PORT') ?: 'NON DÉFINI') . "<br>";
-echo "DB_TYPE: " . (getenv('DB_TYPE') ?: 'NON DÉFINI') . "<br>";
+$host = getenv('DB_HOST') ?: 'NON DÉFINI';
+$db = getenv('DB_NAME') ?: 'NON DÉFINI';
+$user = getenv('DB_USER') ?: 'NON DÉFINI';
+$pass = getenv('DB_PASS') ?: '';
+$port = getenv('DB_PORT') ?: 'NON DÉFINI';
+$type = getenv('DB_TYPE') ?: 'NON DÉFINI';
+
+echo "DB_HOST: " . htmlspecialchars($host) . "<br>";
+echo "DB_NAME: " . htmlspecialchars($db) . "<br>";
+echo "DB_USER: " . htmlspecialchars($user) . "<br>";
+echo "DB_PASS: " . ($pass ? str_repeat('*', strlen($pass)) : 'NON DÉFINI') . "<br>";
+echo "DB_PORT: " . htmlspecialchars($port) . "<br>";
+echo "DB_TYPE: " . htmlspecialchars($type) . "<br>";
 
 echo "<hr>";
 
-// Tester la connexion
-require_once __DIR__ . '/config/db.php';
+// Tester la connexion directement avec PDO
+echo "<h2>Test de Connexion Directe PDO:</h2>";
 
-echo "<h2>Test de Connexion:</h2>";
-
-if (isset($conn)) {
-    echo "✅ Connexion créée avec succès!<br>";
+try {
+    $dsn = "pgsql:host=$host;port=$port;dbname=$db;options='--client_encoding=UTF8'";
+    echo "DSN: " . htmlspecialchars(str_replace($pass, '***', $dsn)) . "<br><br>";
+    
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_TIMEOUT => 5,
+    ]);
+    
+    echo "✅ Connexion PDO réussie!<br><br>";
     
     // Tester une requête simple
-    try {
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM Utilisateur");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo "✅ Requête réussie! Nombre d'utilisateurs: " . ($row['count'] ?? 'N/A') . "<br>";
+    
+    // Tester la liste des tables
+    echo "<br><h3>Tables disponibles:</h3>";
+    $stmt = $pdo->query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name");
+    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    echo "<ul>";
+    foreach ($tables as $table) {
+        echo "<li>" . htmlspecialchars($table) . "</li>";
+    }
+    echo "</ul>";
+    
+} catch (PDOException $e) {
+    echo "❌ <strong>Erreur PDO:</strong><br>";
+    echo "Code: " . $e->getCode() . "<br>";
+    echo "Message: " . htmlspecialchars($e->getMessage()) . "<br>";
+    echo "<br><strong>Détails:</strong><br>";
+    echo "Vérifiez que:<br>";
+    echo "1. Le host est correct: " . htmlspecialchars($host) . "<br>";
+    echo "2. Le port est correct: " . htmlspecialchars($port) . "<br>";
+    echo "3. Le nom de la base est correct: " . htmlspecialchars($db) . "<br>";
+    echo "4. L'utilisateur est correct: " . htmlspecialchars($user) . "<br>";
+    echo "5. Le mot de passe est correct<br>";
+    echo "6. Supabase autorise les connexions externes<br>";
+}
+
+echo "<hr>";
+
+// Tester avec le wrapper
+echo "<h2>Test avec le Wrapper (config/db.php):</h2>";
+try {
+    require_once __DIR__ . '/config/db.php';
+    
+    if (isset($conn)) {
+        echo "✅ Wrapper créé avec succès!<br>";
+        
         $result = $conn->query("SELECT COUNT(*) as count FROM Utilisateur");
         if ($result) {
             if (method_exists($result, 'fetch_assoc')) {
@@ -37,11 +89,11 @@ if (isset($conn)) {
         } else {
             echo "❌ Erreur lors de l'exécution de la requête<br>";
         }
-    } catch (Exception $e) {
-        echo "❌ Erreur: " . $e->getMessage() . "<br>";
+    } else {
+        echo "❌ Échec de la création du wrapper<br>";
     }
-} else {
-    echo "❌ Échec de la connexion<br>";
+} catch (Exception $e) {
+    echo "❌ Erreur: " . htmlspecialchars($e->getMessage()) . "<br>";
 }
 
 echo "<hr>";
