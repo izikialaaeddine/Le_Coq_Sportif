@@ -9,9 +9,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Configuration d'erreurs et performance (mais on garde display_errors pour déboguer)
+// Configuration d'erreurs et performance
 require_once __DIR__ . '/config/error_config.php';
-// Réactiver display_errors après error_config
+// Réactiver display_errors après error_config pour voir les erreurs
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
