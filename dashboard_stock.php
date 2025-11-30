@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $res = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Retour r
                          JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
-                         ORDER BY r.DateRetour DESC");
+                         ORDER BY r.dateretour DESC");
     if ($res && $res->num_rows > 0) {
         echo '<tr><td colspan="7" style="color:green">DEBUG: Il y a ' . $res->num_rows . ' retours</td></tr>';
         $retours = [];
@@ -1911,7 +1911,19 @@ while ($row = $resFab->fetch_assoc()) {
                             <select id="historyUser" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="">Tous les utilisateurs</option>
                                 <?php
-                                $users = $conn->query("SELECT DISTINCT U.Prenom, U.Nom FROM Historique H JOIN Utilisateur U ON H.idUtilisateur = U.idUtilisateur ORDER BY U.Prenom, U.Nom")->fetch_all(MYSQLI_ASSOC);
+                                $users_query = $conn->query("SELECT DISTINCT U.prenom AS Prenom, U.nom AS Nom FROM Historique H JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur ORDER BY U.prenom, U.nom");
+                                if ($users_query) {
+                                    if (method_exists($users_query, 'fetch_all')) {
+                                        $users = $users_query->fetch_all(MYSQLI_ASSOC);
+                                    } else {
+                                        $users = [];
+                                        while ($row = $users_query->fetch_assoc()) {
+                                            $users[] = $row;
+                                        }
+                                    }
+                                } else {
+                                    $users = [];
+                                }
                                 foreach ($users as $user) {
                                     $fullName = $user['Prenom'] . ' ' . $user['Nom'];
                                     echo '<option value="' . htmlspecialchars($fullName) . '">' . htmlspecialchars($fullName) . '</option>';
@@ -3722,7 +3734,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $historiques = $conn->query(
-    "SELECT H.*, U.Nom, U.Prenom, R.Role FROM Historique H LEFT JOIN Utilisateur U ON H.idUtilisateur = U.idUtilisateur LEFT JOIN Role R ON U.idRole = R.idRole ORDER BY H.DateAction DESC LIMIT 100"
+    "SELECT H.*, U.nom AS Nom, U.prenom AS Prenom, R.role AS Role FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur LEFT JOIN Role R ON U.idrole = R.idrole ORDER BY H.DateAction DESC LIMIT 100"
 )->fetch_all(MYSQLI_ASSOC);
 ?>
 <script>
