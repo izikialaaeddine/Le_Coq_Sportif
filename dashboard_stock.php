@@ -128,9 +128,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $resDemandes = $conn->query("SELECT Statut, TypeDemande, COUNT(*) as count FROM Demande GROUP BY Statut, TypeDemande");
     if ($resDemandes) {
         while($row = $resDemandes->fetch_assoc()) {
-            $status = strtolower(trim($row['Statut']));
-            $type = strtolower(trim($row['TypeDemande']));
-            if ($type === 'demande') {
+            $status = strtolower(trim($row['Statut'] ?? ''));
+            $type = strtolower(trim($row['TypeDemande'] ?? ''));
+            if ($type === 'demande' || $type === 'Demande') {
                 if ($status === 'en attente') $stats['pendingRequests'] = $row['count'];
                 elseif (in_array($status, ['approuvée', 'validée', 'emprunte', 'prêt pour retrait', 'en fabrication', 'attente inter-service'])) {
                     $stats['approvedRequests'] += $row['count'];
