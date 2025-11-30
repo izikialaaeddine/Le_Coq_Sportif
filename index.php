@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $identifiantUser = $user['Identifiant'] ?? $user['identifiant'] ?? '';
                         
                         if ($motDePasse && password_verify($mdp, $motDePasse)) {
-                            // Sauvegarder la session AVANT toute sortie
+                            // Sauvegarder la session
                             $_SESSION['user'] = [
                                 'id'    => (int)$idUtilisateur,
                                 'Nom'   => $nom,
@@ -72,10 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'Identifiant' => $identifiantUser
                             ];
                             
-                            // Forcer l'écriture de la session
-                            session_write_close();
-                            
-                            // Redirection selon le rôle (AVANT tout output)
+                            // Redirection selon le rôle
                             $redirect = 'index.php';
                             if ($idRole == 1) {
                                 $redirect = 'dashboard_stock.php';
@@ -87,9 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $redirect = 'dashboard_admin.php';
                             }
                             
-                            // Redirection immédiate
+                            // Redirection immédiate (session sera sauvegardée automatiquement)
                             header('Location: ' . $redirect, true, 302);
-                            exit();
+                            exit;
                         } else {
                             $error_message = "Identifiant ou mot de passe incorrect.";
                         }
