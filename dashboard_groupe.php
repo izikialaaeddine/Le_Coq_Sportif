@@ -33,7 +33,7 @@ $echantillons = $conn->query("SELECT * FROM Echantillon")->fetch_all(MYSQLI_ASSO
 // Récupère toutes les demandes avec leurs échantillons ET le nom du demandeur
 $demandes = [];
 $res = $conn->query("
-    SELECT d.*, u.Nom as NomDemandeur, u.Prenom as PrenomDemandeur
+    SELECT d.*, u.nom as NomDemandeur, u.prenom as PrenomDemandeur
     FROM Demande d
     JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
     ORDER BY d.DateDemande DESC
@@ -70,7 +70,7 @@ if (count($demandes) > 0) {
 
 $retours = [];
 $res = $conn->query("
-    SELECT r.*, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur
+    SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
     FROM Retour r
     JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur
     ORDER BY r.DateRetour DESC
@@ -2962,7 +2962,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php
 // Récupération des données historiques (100 dernières entrées)
 $historiques = $conn->query(
-    "SELECT H.*, U.Nom, U.Prenom FROM Historique H LEFT JOIN Utilisateur U ON H.idUtilisateur = U.idUtilisateur ORDER BY H.DateAction DESC LIMIT 100"
+    "SELECT H.*, U.nom AS Nom, U.prenom AS Prenom FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur ORDER BY H.DateAction DESC LIMIT 100"
 )->fetch_all(MYSQLI_ASSOC);
 ?>
 <script>

@@ -53,7 +53,7 @@ while ($row = $res->fetch_assoc()) {
     $samples[] = $row;
 }
 // Récupérer les 5 derniers échantillons avec nom/prénom utilisateur
-$lastSamplesSQL = "SELECT E.*, U.Nom, U.Prenom FROM Echantillon E LEFT JOIN Utilisateur U ON E.idUtilisateur = U.idUtilisateur ORDER BY E.DateCreation DESC LIMIT 5";
+$lastSamplesSQL = "SELECT E.*, U.nom AS Nom, U.prenom AS Prenom FROM Echantillon E LEFT JOIN Utilisateur U ON E.idutilisateur = U.idutilisateur ORDER BY E.DateCreation DESC LIMIT 5";
 $lastSamplesPHP = $conn->query($lastSamplesSQL)->fetch_all(MYSQLI_ASSOC);
 // Après la récupération de $samples :
 $totalSamplesPHP = count($samples);
@@ -606,7 +606,19 @@ if (isset($_POST['delete_ref'])) {
                                 <option value="Suppression">Suppression</option>
                             </select>
                             <?php
-                            $users = $conn->query("SELECT DISTINCT U.idUtilisateur, U.Prenom, U.Nom FROM Historique H LEFT JOIN Utilisateur U ON H.idUtilisateur = U.idUtilisateur WHERE U.idUtilisateur IS NOT NULL ORDER BY U.Nom, U.Prenom")->fetch_all(MYSQLI_ASSOC);
+                            $users_query = $conn->query("SELECT DISTINCT U.idutilisateur AS idUtilisateur, U.prenom AS Prenom, U.nom AS Nom FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur WHERE U.idutilisateur IS NOT NULL ORDER BY U.nom, U.prenom");
+                            if ($users_query) {
+                                if (method_exists($users_query, 'fetch_all')) {
+                                    $users = $users_query->fetch_all(MYSQLI_ASSOC);
+                                } else {
+                                    $users = [];
+                                    while ($row = $users_query->fetch_assoc()) {
+                                        $users[] = $row;
+                                    }
+                                }
+                            } else {
+                                $users = [];
+                            }
                             ?>
                             <select id="historyUser" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="">Tous les utilisateurs</option>
@@ -1018,7 +1030,7 @@ if (isset($_POST['delete_ref'])) {
         // --- Historique ---
         <?php
         $historiques = $conn->query(
-            "SELECT H.*, U.Nom, U.Prenom FROM Historique H LEFT JOIN Utilisateur U ON H.idUtilisateur = U.idUtilisateur ORDER BY H.DateAction DESC LIMIT 100"
+            "SELECT H.*, U.nom AS Nom, U.prenom AS Prenom FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur ORDER BY H.DateAction DESC LIMIT 100"
         )->fetch_all(MYSQLI_ASSOC);
         ?>
         let historiques = <?php echo json_encode($historiques); ?>;

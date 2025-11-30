@@ -204,7 +204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     // === AJOUT : Récupérer les retours en attente ===
     echo '<tr><td colspan="7" style="color:red">DEBUG: Début du code PHP retours</td></tr>';
-    $res = $conn->query("SELECT r.*, u.Nom AS NomDemandeur, u.Prenom AS PrenomDemandeur
+    $res = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Retour r
                          JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur
                          ORDER BY r.DateRetour DESC");
@@ -285,7 +285,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $data['requests'] = $all_requests;
 
     // --- HISTORY TABLE ---
-    $data['history'] = $conn->query("SELECT H.*, U.Nom, U.Prenom, R.Role FROM Historique H LEFT JOIN Utilisateur U ON H.idUtilisateur = U.idUtilisateur LEFT JOIN Role R ON U.idRole = R.idRole ORDER BY H.DateAction DESC LIMIT 100")->fetch_all(MYSQLI_ASSOC);
+    $history_query = $conn->query("SELECT H.*, U.nom AS Nom, U.prenom AS Prenom, R.role AS Role FROM Historique H LEFT JOIN Utilisateur U ON H.idutilisateur = U.idutilisateur LEFT JOIN Role R ON U.idrole = R.idrole ORDER BY H.DateAction DESC LIMIT 100");
+    if ($history_query) {
+        if (method_exists($history_query, 'fetch_all')) {
+            $data['history'] = $history_query->fetch_all(MYSQLI_ASSOC);
+        } else {
+            $data['history'] = [];
+            while ($row = $history_query->fetch_assoc()) {
+                $data['history'][] = $row;
+            }
+        }
+    } else {
+        $data['history'] = [];
+    }
 
     // --- FABRICATION CENTER MODAL ---
     $fabrications = [];
@@ -443,16 +455,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, DateCreation FROM Echantillon WHERE Statut = 'En fabrication' ORDER BY DateCreation DESC";
             break;
         case 'pending_requests':
-            $query = "SELECT d.idDemande, d.DateDemande, u.Nom, u.Prenom FROM Demande d JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur WHERE d.TypeDemande = 'demande' AND d.Statut = 'En attente' ORDER BY d.DateDemande DESC";
+            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.TypeDemande = 'demande' AND d.Statut = 'En attente' ORDER BY d.DateDemande DESC";
             break;
         case 'approved_requests':
-            $query = "SELECT d.idDemande, d.DateDemande, u.Nom, u.Prenom, d.Statut FROM Demande d JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur WHERE d.TypeDemande = 'demande' AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service') ORDER BY d.DateDemande DESC";
+            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom, d.Statut FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.TypeDemande = 'demande' AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service') ORDER BY d.DateDemande DESC";
             break;
         case 'rejected_requests':
-            $query = "SELECT d.idDemande, d.DateDemande, u.Nom, u.Prenom FROM Demande d JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur WHERE d.TypeDemande = 'demande' AND d.Statut = 'Refusée' ORDER BY d.DateDemande DESC";
+            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.TypeDemande = 'demande' AND d.Statut = 'Refusée' ORDER BY d.DateDemande DESC";
             break;
         case 'pending_returns':
-            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.Nom, u.Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur WHERE r.Statut = 'En attente' ORDER BY r.DateRetour DESC";
+            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut = 'En attente' ORDER BY r.DateRetour DESC";
             break;
         case 'approved_returns':
             $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.Nom, u.Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur WHERE r.Statut IN ('Validé', 'Approuvé', 'Retourné') ORDER BY r.DateRetour DESC";
