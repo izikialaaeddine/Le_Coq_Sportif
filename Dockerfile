@@ -16,8 +16,15 @@ RUN a2enmod rewrite
 # Configurer ServerName pour éviter le warning
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# Désactiver le site par défaut et activer notre configuration
+RUN a2dissite 000-default.conf
+
 # Copier les fichiers
 COPY . /var/www/html/
+
+# Copier la configuration Apache personnalisée
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+RUN a2ensite 000-default.conf
 
 # Configurer les permissions
 RUN chown -R www-data:www-data /var/www/html

@@ -14,8 +14,8 @@ RewriteEngine On
     Deny from all
 </FilesMatch>
 
-# Empêcher l'accès aux fichiers de configuration
-<FilesMatch "\.(sql|md|sh|bat|txt)$">
+# Empêcher l'accès aux fichiers de configuration (sauf test_connection.php pour debug)
+<FilesMatch "\.(sql|md|sh|bat)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
