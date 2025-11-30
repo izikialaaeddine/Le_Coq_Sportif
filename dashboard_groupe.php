@@ -166,10 +166,6 @@ if ($res) {
     }
 }
 echo '<script>let demandesRetour = ' . json_encode($demandes_retour) . ';</script>';
-?>
-<?php
-session_start();
-require_once 'config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['demande'])) {
     error_log('POST reçu: ' . print_r($_POST, true));
