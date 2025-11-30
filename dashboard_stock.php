@@ -3767,15 +3767,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Hidden select to store all available samples -->
 <select id="sourceEchantillons" class="hidden">
-    <?php foreach ($echantillons as $sample): ?>
+    <?php foreach ($echantillons as $sample): 
+        $refEch = $sample['RefEchantillon'] ?? $sample['refechantillon'] ?? '';
+        $fam = $sample['Famille'] ?? $sample['famille'] ?? '';
+        $coul = $sample['Couleur'] ?? $sample['couleur'] ?? '';
+        $tail = $sample['Taille'] ?? $sample['taille'] ?? '';
+        $qt = $sample['Qte'] ?? $sample['qte'] ?? 0;
+    ?>
         <option
-            value="<?= htmlspecialchars($sample['RefEchantillon']) ?>"
-            data-famille="<?= htmlspecialchars($sample['Famille']) ?>"
-            data-couleur="<?= htmlspecialchars($sample['Couleur']) ?>"
-            data-taille="<?= htmlspecialchars($sample['Taille']) ?>"
-            data-qte="<?= htmlspecialchars($sample['Qte']) ?>"
+            value="<?= htmlspecialchars($refEch) ?>"
+            data-famille="<?= htmlspecialchars($fam) ?>"
+            data-couleur="<?= htmlspecialchars($coul) ?>"
+            data-taille="<?= htmlspecialchars($tail) ?>"
+            data-qte="<?= htmlspecialchars($qt) ?>"
         >
-            <?= htmlspecialchars($sample['RefEchantillon']) ?> – <?= htmlspecialchars($sample['Famille']) ?> – <?= htmlspecialchars($sample['Couleur']) ?> (Stock: <?= htmlspecialchars($sample['Qte']) ?>)
+            <?= htmlspecialchars($refEch) ?> – <?= htmlspecialchars($fam) ?> – <?= htmlspecialchars($coul) ?> (Stock: <?= htmlspecialchars($qt) ?>)
         </option>
     <?php endforeach; ?>
 </select>
