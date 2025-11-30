@@ -1390,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calcul des données pour le graphique
         const demandesEnAttente = App.demandes.filter(d => d.statut === 'En attente').length;
         const demandesValidees = App.demandes.filter(d => {
-            const statut = d.statut.toLowerCase();
+            const statut = (d.statut || '').toLowerCase();
             return statut === 'validée' || statut === 'approuvée' || 
                    statut === 'prêt pour retrait' || statut === 'en fabrication' || 
                    statut === 'attente inter-service';
@@ -1462,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let actionStock = '';
             const specialStatus = ['prêt pour retrait', 'en fabrication', 'attente inter-service'];
 
-            if (specialStatus.includes(statutPrincipal.toLowerCase())) {
+            if (statutPrincipal && specialStatus.includes(statutPrincipal.toLowerCase())) {
                 actionStock = d.statut;
                 statutPrincipal = 'Validée'; // On considère que c'est un sous-statut de 'Validée'
             } else if (statutPrincipal && statutPrincipal.toLowerCase() === 'approuvée') {
