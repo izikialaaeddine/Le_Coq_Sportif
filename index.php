@@ -6,7 +6,11 @@ require_once __DIR__ . '/config/db.php';
 
 // Fetch all users with their credentials for display
 $users_query = $conn->query("SELECT u.idUtilisateur, u.Nom, u.Prenom, u.Identifiant, r.Role FROM Utilisateur u LEFT JOIN Role r ON u.idRole = r.idRole WHERE u.Identifiant IS NOT NULL AND u.Identifiant != '' ORDER BY u.Nom, u.Prenom");
-$all_users = $users_query->fetch_all(MYSQLI_ASSOC);
+if ($users_query) {
+    $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
+} else {
+    $all_users = [];
+}
 
 // Mots de passe pour affichage (mapping des identifiants aux mots de passe)
 $passwords_map = [
