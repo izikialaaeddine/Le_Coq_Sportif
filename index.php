@@ -38,35 +38,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identifiant = trim($_POST['identifiant'] ?? '');
     $mdp = trim($_POST['mdp'] ?? '');
     if ($identifiant && $mdp) {
-        // PostgreSQL: utiliser des noms de colonnes en minuscules avec alias
-        $stmt = $conn->prepare('SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom, r.role as Role FROM Utilisateur u JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant = ?');
-        $stmt->bind_param('s', $identifiant);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        if ($user && password_verify($mdp, $user['MotDePasse'])) {
-            $_SESSION['user'] = [
-                'id'    => $user['idUtilisateur'],
-                'Nom'   => $user['Nom'],
-                'Prenom'=> $user['Prenom'],
-                'Role'  => $user['Role'],
-                'idRole'=> $user['idRole'],
-                'Identifiant' => $user['Identifiant']
-            ];
-            // Redirection selon le rôle
-            if ($user['idRole'] == 1) {
-                header('Location: dashboard_stock.php');
-            } else if ($user['idRole'] == 2) {
-                header('Location: dashboard_groupe.php');
-            } else if ($user['idRole'] == 3) {
-                header('Location: dashboard_reception.php');
-            } else if ($user['idRole'] == 4) {
-                header('Location: dashboard_admin.php');
+        try {
+            // PostgreSQL: utiliser des noms de colonnes en minuscules avec alias
+            $stmt = $conn->prepare('SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom, r.role as Role FROM Utilisateur u JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant = ?');
+            if ($stmt) {
+                $stmt->bind_param('s', $identifiant);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                if ($result) {
+                    $user = $result->fetch_assoc();
+                    if ($user) {
+                        // Gérer les deux cas : majuscules (alias) et minuscules (PostgreSQL)
+                        $motDePasse = $user['MotDePasse'] ?? $user['motdepasse'] ?? '';
+                        $idUtilisateur = $user['idUtilisateur'] ?? $user['idutilisateur'] ?? 0;
+                        $idRole = $user['idRole'] ?? $user['idrole'] ?? 0;
+                        $nom = $user['Nom'] ?? $user['nom'] ?? '';
+                        $prenom = $user['Prenom'] ?? $user['prenom'] ?? '';
+                        $role = $user['Role'] ?? $user['role'] ?? '';
+                        $identifiantUser = $user['Identifiant'] ?? $user['identifiant'] ?? '';
+                        
+                        if ($motDePasse && password_verify($mdp, $motDePasse)) {
+                            $_SESSION['user'] = [
+                                'id'    => $idUtilisateur,
+                                'Nom'   => $nom,
+                                'Prenom'=> $prenom,
+                                'Role'  => $role,
+                                'idRole'=> $idRole,
+                                'Identifiant' => $identifiantUser
+                            ];
+                            // Redirection selon le rôle
+                            if ($idRole == 1) {
+                                header('Location: dashboard_stock.php');
+                            } else if ($idRole == 2) {
+                                header('Location: dashboard_groupe.php');
+                            } else if ($idRole == 3) {
+                                header('Location: dashboard_reception.php');
+                            } else if ($idRole == 4) {
+                                header('Location: dashboard_admin.php');
+                            } else {
+                                header('Location: index.php');
+                            }
+                            exit;
+                        } else {
+                            $error_message = "Identifiant ou mot de passe incorrect.";
+                        }
+                    } else {
+                        $error_message = "Identifiant ou mot de passe incorrect.";
+                    }
+                } else {
+                    $error_message = "Erreur lors de la vérification des identifiants.";
+                }
             } else {
-                header('Location: index.php');
+                $error_message = "Erreur de préparation de la requête.";
             }
-            exit;
+        } catch (Exception $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error_message = "Erreur de connexion. Veuillez réessayer.";
         }
+    } else {
+        $error_message = "Veuillez remplir tous les champs.";
     }
 }
 ?>
@@ -227,11 +257,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1 class="text-2xl font-bold mb-1">Gestion d'Échantillons</h1>
                 <p class="opacity-80 text-sm">Plateforme de Gestion developpée par<br>IZIKI Alaa Eddine - HAFIT Rabii</p>
             </div>
+            <?php if (isset($error_message)): ?>
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i><?= htmlspecialchars($error_message) ?>
+            </div>
+            <?php endif; ?>
             <form method="post" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-2"><i class="fas fa-user mr-2"></i>Identifiant</label>
                     <input type="text" name="identifiant" class="w-full px-4 py-3 rounded-lg" placeholder="Votre identifiant" 
-                    required autocomplete="username">
+                    required autocomplete="username" value="<?= htmlspecialchars($_POST['identifiant'] ?? '') ?>">
                 </div>
                 <div class="relative">
                     <label class="block text-sm font-medium mb-2"><i class="fas fa-lock mr-2"></i>Mot de passe</label>
