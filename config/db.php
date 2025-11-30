@@ -174,4 +174,3 @@ if ($isPostgres) {
         throw new Exception('Erreur de connexion MySQL: ' . $conn->connect_error);
     }
 }
-?>
