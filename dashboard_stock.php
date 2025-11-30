@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         }
         $stats['totalSamples'] = $stats['availableSamples'] + $stats['borrowedSamples'] + $stats['fabricationSamples'];
     }
-    $resDemandes = $conn->query("SELECT statut AS Statut, typedemande AS TypeDemande, COUNT(*) as count FROM Demande GROUP BY statut, typedemande");
+    $resDemandes = $conn->query("SELECT Statut, TypeDemande, COUNT(*) as count FROM Demande GROUP BY Statut, TypeDemande");
     if ($resDemandes) {
         while($row = $resDemandes->fetch_assoc()) {
             $status = strtolower(trim($row['Statut']));
@@ -202,13 +202,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $demandes_et_retours = [];
     $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Demande d
-                         JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-                         ORDER BY d.datedemande DESC LIMIT 100");
+                         JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+                         ORDER BY d.DateDemande DESC LIMIT 100");
     if ($res) {
         while ($row = $res->fetch_assoc()) {
             $row['echantillons'] = [];
-            $idDemande = $row['idDemande'] ?? $row['iddemande'] ?? '';
-            $res2 = $conn->query("SELECT de.refechantillon AS refEchantillon, de.qte AS qte, e.famille AS famille, e.couleur AS couleur, e.taille AS taille FROM DemandeEchantillon de LEFT JOIN Echantillon e ON de.refechantillon = e.refechantillon WHERE de.iddemande = " . intval($idDemande));
+            $idDemande = $row['idDemande'];
+            $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE idDemande = " . intval($idDemande));
             if($res2) {
                 while ($e = $res2->fetch_assoc()) {
                     $row['echantillons'][] = $e;
