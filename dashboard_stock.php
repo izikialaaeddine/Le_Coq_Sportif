@@ -452,7 +452,7 @@ if ($res_activity) {
 
 // --- RÉCUPÉRER LES ÉCHANTILLONS POUR LE TABLEAU ---
 $echantillons = [];
-$echantillons_query = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.description AS Description, e.datecreation AS DateCreation, e.idutilisateur AS idUtilisateur FROM Echantillon e ORDER BY e.datecreation DESC");
+$echantillons_query = $conn->query("SELECT * FROM Echantillon ORDER BY dateCreation DESC");
 if ($echantillons_query) {
     if (method_exists($echantillons_query, 'fetch_all')) {
         $echantillons = $echantillons_query->fetch_all(MYSQLI_ASSOC);
