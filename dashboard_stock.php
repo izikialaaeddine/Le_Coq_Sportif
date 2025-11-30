@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // 3. Logique spécifique au statut
         if ($newStatus === 'Prêt pour retrait') {
             foreach ($echantillonsDemandes as $ech) {
-                $stmtEch = $conn->prepare("UPDATE Echantillon SET Qte = Qte - ?, Statut = 'emprunte' WHERE RefEchantillon = ? AND Qte >= ?");
+                $stmtEch = $conn->prepare("UPDATE Echantillon SET qte = qte - ?, statut = 'emprunte' WHERE refechantillon = ? AND qte >= ?");
                 $stmtEch->bind_param("isi", $ech['qte'], $ech['refEchantillon'], $ech['qte']);
                 if (!$stmtEch->execute()) { throw new Exception("Erreur de mise à jour du stock pour {$ech['refEchantillon']}: " . $stmtEch->error); }
                 if ($stmtEch->affected_rows === 0) { throw new Exception("Stock insuffisant ou échantillon non disponible pour {$ech['refEchantillon']}."); }
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $description .= " Le stock a été mis à jour.";
         } elseif ($newStatus === 'En fabrication') {
             foreach ($echantillonsDemandes as $ech) {
-                $stmtEch = $conn->prepare("UPDATE Echantillon SET Statut = 'En fabrication' WHERE RefEchantillon = ?");
+                $stmtEch = $conn->prepare("UPDATE Echantillon SET statut = 'En fabrication' WHERE refechantillon = ?");
                 $stmtEch->bind_param("s", $ech['refEchantillon']);
                 if (!$stmtEch->execute()) { throw new Exception("Erreur de mise à jour du statut pour {$ech['refEchantillon']}: " . $stmtEch->error); }
             }
@@ -462,13 +462,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     switch ($type) {
         case 'available_samples':
-            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'disponible' ORDER BY datecreation DESC";
+            $query = "SELECT refechantillon AS RefEchantillon, famille AS Famille, couleur AS Couleur, taille AS Taille, qte AS Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'disponible' ORDER BY datecreation DESC";
             break;
         case 'borrowed_samples':
-            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, datecreation AS DateCreation FROM Echantillon WHERE statut = 'emprunte' ORDER BY datecreation DESC";
+            $query = "SELECT refechantillon AS RefEchantillon, famille AS Famille, couleur AS Couleur, taille AS Taille, datecreation AS DateCreation FROM Echantillon WHERE statut = 'emprunte' ORDER BY datecreation DESC";
             break;
         case 'fabrication_samples':
-            $query = "SELECT RefEchantillon, Famille, Couleur, Taille, Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'En fabrication' ORDER BY datecreation DESC";
+            $query = "SELECT refechantillon AS RefEchantillon, famille AS Famille, couleur AS Couleur, taille AS Taille, qte AS Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'En fabrication' ORDER BY datecreation DESC";
             break;
         case 'pending_requests':
             $query = "SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.typedemande = 'demande' AND d.statut = 'En attente' ORDER BY d.datedemande DESC";
@@ -535,7 +535,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $ok = true;
     $errorMsg = '';
 
-    $stmt = $conn->prepare("SELECT Statut FROM Echantillon WHERE RefEchantillon = ?");
+    $stmt = $conn->prepare("SELECT statut AS Statut FROM Echantillon WHERE refechantillon = ?");
     $stmt->bind_param("s", $refEchantillon);
     if ($stmt->execute()) {
         $result = $stmt->get_result();
@@ -557,7 +557,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $stmt->close();
 
     if ($ok) {
-        $stmt = $conn->prepare("UPDATE Echantillon SET Statut = 'retourné' WHERE RefEchantillon = ?");
+        $stmt = $conn->prepare("UPDATE Echantillon SET statut = 'retourné' WHERE refechantillon = ?");
         $stmt->bind_param("s", $refEchantillon);
         if ($stmt->execute()) {
             echo json_encode(['success' => true]);
@@ -653,7 +653,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Comparer les anciens et nouveaux items
         foreach ($newItems as $ref => $newQte) {
             $oldQte = $oldItems[$ref] ?? null;
-            $resDet = $conn->query("SELECT Famille, Couleur, Taille FROM Echantillon WHERE RefEchantillon = '$ref' LIMIT 1");
+            $resDet = $conn->query("SELECT famille AS Famille, couleur AS Couleur, taille AS Taille FROM Echantillon WHERE refechantillon = '$ref' LIMIT 1");
             $rowDet = $resDet ? $resDet->fetch_assoc() : null;
             $famille = $rowDet['Famille'] ?? '';
             $couleur = $rowDet['Couleur'] ?? '';
@@ -669,7 +669,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Échantillons supprimés
         foreach ($oldItems as $ref => $oldQte) {
             if (!isset($newItems[$ref])) {
-                $resDet = $conn->query("SELECT Famille, Couleur, Taille FROM Echantillon WHERE RefEchantillon = '$ref' LIMIT 1");
+                $resDet = $conn->query("SELECT famille AS Famille, couleur AS Couleur, taille AS Taille FROM Echantillon WHERE refechantillon = '$ref' LIMIT 1");
                 $rowDet = $resDet ? $resDet->fetch_assoc() : null;
                 $famille = $rowDet['Famille'] ?? '';
                 $couleur = $rowDet['Couleur'] ?? '';
@@ -774,7 +774,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         // 3. Mettre à jour le stock pour chaque échantillon
-        $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET Qte = Qte + ? WHERE RefEchantillon = ?");
+        $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET qte = qte + ? WHERE refechantillon = ?");
         foreach ($echantillons_a_fabriquer as $ech) {
             $qte = $ech['Qte'];
             $ref = $ech['RefEchantillon'];
@@ -798,7 +798,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         foreach ($echantillons_a_fabriquer as $ech) {
             $ref = $ech['RefEchantillon'];
             $qte = $ech['Qte'];
-            $resDet = $conn->query("SELECT Famille, Couleur, Taille FROM Echantillon WHERE RefEchantillon = '$ref' LIMIT 1");
+            $resDet = $conn->query("SELECT famille AS Famille, couleur AS Couleur, taille AS Taille FROM Echantillon WHERE refechantillon = '$ref' LIMIT 1");
             $rowDet = $resDet ? $resDet->fetch_assoc() : null;
             $famille = $rowDet['Famille'] ?? '';
             $couleur = $rowDet['Couleur'] ?? '';
@@ -862,7 +862,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // 3. Mettre à jour le stock et le statut pour chaque échantillon
         // On suppose que le statut redevient 'disponible'
-        $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET Qte = Qte + ?, Statut = 'disponible' WHERE RefEchantillon = ?");
+        $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET qte = qte + ?, statut = 'disponible' WHERE refechantillon = ?");
         foreach ($echantillons_a_retourner as $ech) {
             $qte = $ech['qte'];
             $ref = $ech['refEchantillon'];
@@ -937,7 +937,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         // 3. Mettre à jour le stock et le statut pour chaque échantillon
-        $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET Qte = Qte + ?, Statut = 'disponible' WHERE RefEchantillon = ?");
+        $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET qte = qte + ?, statut = 'disponible' WHERE refechantillon = ?");
         foreach ($echantillons_a_retourner as $ech) {
             $qte = $ech['qte'];
             $ref = $ech['RefEchantillon'];
