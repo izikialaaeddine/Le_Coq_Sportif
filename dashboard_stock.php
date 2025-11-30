@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     // --- ACTIVITÉ RÉCENTE ---
     $recent_activities = [];
     $query_activity = "
-    (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
+    (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refechantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         while ($row = $res->fetch_assoc()) {
             $row['echantillons'] = [];
             $idDemande = $row['idDemande'];
-            $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE idDemande = $idDemande");
+            $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE iddemande = $idDemande");
                 if($res2) {
             while ($e = $res2->fetch_assoc()) {
                 $row['echantillons'][] = $e;
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $idRetour = $row['idRetour'];
             // Get all echantillons for this retour
             $echs = [];
-            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idRetour = $idRetour");
+            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idretour = $idRetour");
             if ($res2) {
                 while ($e = $res2->fetch_assoc()) {
                     $echs[] = $e;
@@ -420,7 +420,7 @@ if ($resFabrications) {
 // --- ACTIVITÉ RÉCENTE ---
 $recent_activities = [];
 $query_activity = "
-(SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
+(SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refechantillon, ', ') as details
 FROM Demande d
 JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
 JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
@@ -874,7 +874,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt_update_stock->close();
 
         // 4. Mettre à jour le statut de la demande de retour
-        $stmt_update_demande = $conn->prepare("UPDATE Demande SET Statut = 'Retourné' WHERE idDemande = ?");
+        $stmt_update_demande = $conn->prepare("UPDATE Demande SET Statut = 'Retourné' WHERE iddemande = ?");
         $stmt_update_demande->bind_param("i", $idDemande);
         if (!$stmt_update_demande->execute()) {
             throw new Exception("Erreur de mise à jour du statut de la demande: " . $stmt_update_demande->error);
@@ -909,7 +909,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Vérifier si c'est bien un retour en attente
-        $stmt_check = $conn->prepare("SELECT Statut FROM Retour WHERE idRetour = ?");
+        $stmt_check = $conn->prepare("SELECT Statut FROM Retour WHERE idretour = ?");
         $stmt_check->bind_param("i", $idRetour);
         $stmt_check->execute();
         $res_check = $stmt_check->get_result();
@@ -949,7 +949,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt_update_stock->close();
 
         // 4. Mettre à jour le statut du retour
-        $stmt_update_retour = $conn->prepare("UPDATE Retour SET Statut = 'Validé' WHERE idRetour = ?");
+        $stmt_update_retour = $conn->prepare("UPDATE Retour SET Statut = 'Validé' WHERE idretour = ?");
         $stmt_update_retour->bind_param("i", $idRetour);
         if (!$stmt_update_retour->execute()) {
             throw new Exception("Erreur de mise à jour du statut du retour: " . $stmt_update_retour->error);
@@ -984,7 +984,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Vérifier si c'est bien un retour en attente
-        $stmt_check = $conn->prepare("SELECT Statut FROM Retour WHERE idRetour = ?");
+        $stmt_check = $conn->prepare("SELECT Statut FROM Retour WHERE idretour = ?");
         $stmt_check->bind_param("i", $idRetour);
         $stmt_check->execute();
         $res_check = $stmt_check->get_result();
@@ -1008,7 +1008,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         // 3. Mettre à jour le statut du retour
-        $stmt_update_retour = $conn->prepare("UPDATE Retour SET Statut = 'Refusé' WHERE idRetour = ?");
+        $stmt_update_retour = $conn->prepare("UPDATE Retour SET Statut = 'Refusé' WHERE idretour = ?");
         $stmt_update_retour->bind_param("i", $idRetour);
         if (!$stmt_update_retour->execute()) {
             throw new Exception("Erreur de mise à jour du statut du retour: " . $stmt_update_retour->error);
@@ -1036,14 +1036,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
     $idValidateur = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : 1;
     $statut = ($_POST['action'] === 'approuver') ? 'Approuvée' : 'Refusée';
 
-    $stmt = $conn->prepare("UPDATE Demande SET Statut=?, idValidateur=? WHERE idDemande=?");
+    $stmt = $conn->prepare("UPDATE Demande SET Statut=?, idValidateur=? WHERE iddemande=?");
     $stmt->bind_param("sii", $statut, $idValidateur, $id);
     $ok = $stmt->execute();
 
     // Ajout à l'historique (homogène)
     $echantillons = [];
     $refs = [];
-    $resEch = $conn->query("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE idDemande = $id");
+    $resEch = $conn->query("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE iddemande = $id");
     while ($e = $resEch->fetch_assoc()) {
         $ref = $e['refEchantillon'];
         $qte = $e['qte'];
@@ -1619,7 +1619,7 @@ while ($row = $resFab->fetch_assoc()) {
         SELECT SUM(de.qte) as total
         FROM DemandeEchantillon de
         JOIN Demande d ON d.iddemande = de.iddemande
-        WHERE de.refEchantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
+        WHERE de.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
           AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
     ");
     $rowEmprunt = $resEmprunt ? $resEmprunt->fetch_assoc() : null;
@@ -1749,7 +1749,7 @@ while ($row = $resFab->fetch_assoc()) {
                                     while ($row = $res->fetch_assoc()) {
                                         $row['echantillons'] = [];
                                         $idDemande = $row['idDemande'];
-                                        $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE idDemande = $idDemande");
+                                        $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE iddemande = $idDemande");
                                             if($res2) {
                                         while ($e = $res2->fetch_assoc()) {
                                             $row['echantillons'][] = $e;
@@ -1770,7 +1770,7 @@ while ($row = $resFab->fetch_assoc()) {
                                         while ($row = $resRetours->fetch_assoc()) {
                                             $row['echantillons'] = [];
                                             $idRetour = $row['idRetour'];
-                                            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idRetour = $idRetour");
+                                            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idretour = $idRetour");
                                             if ($res2) {
                                                 while ($e = $res2->fetch_assoc()) {
                                                     $row['echantillons'][] = $e;
