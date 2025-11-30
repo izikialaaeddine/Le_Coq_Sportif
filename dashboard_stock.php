@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
     )
     UNION ALL
-    (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
+    (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.refechantillon, ', ') as details
     FROM Fabrication f
     JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
     WHERE f.idLot IS NOT NULL
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Demande d
                          JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-                         ORDER BY d.DateDemande DESC");
+                         ORDER BY d.datedemande DESC");
     if ($res) {
         while ($row = $res->fetch_assoc()) {
             $row['echantillons'] = [];
@@ -436,7 +436,7 @@ WHERE d.typedemande = 'retour'
 GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
 )
 UNION ALL
-(SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
+(SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.refechantillon, ', ') as details
 FROM Fabrication f
 JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
 WHERE f.idLot IS NOT NULL
@@ -1744,7 +1744,7 @@ while ($row = $resFab->fetch_assoc()) {
                                     $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                                                          FROM Demande d
                                                          JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-                                                         ORDER BY d.DateDemande DESC");
+                                                         ORDER BY d.datedemande DESC");
                                     if ($res) {
                                     while ($row = $res->fetch_assoc()) {
                                         $row['echantillons'] = [];
