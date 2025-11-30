@@ -121,7 +121,7 @@ $retours_qte = [];
 $res = $conn->query("
     SELECT re.refEchantillon, re.famille, re.couleur, SUM(re.qte) as qte_retournee
     FROM RetourEchantillon re
-    JOIN Retour r ON r.idRetour = re.idRetour
+    JOIN Retour r ON r.idretour = re.idretour
     WHERE r.idutilisateur = " . intval($currentUser['id']) . "
       AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
     GROUP BY re.refEchantillon, re.famille, re.couleur
@@ -284,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['demande'])) {
             $resRetour = $conn->query("
                 SELECT SUM(re.qte) as total
                 FROM RetourEchantillon re
-                JOIN Retour r ON r.idRetour = re.idRetour
+                JOIN Retour r ON r.idretour = re.idretour
                 WHERE re.RefEchantillon = '" . $conn->real_escape_string($ref) . "'
                   AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
             ");
@@ -1510,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     qte: qtes,
                     date: r.dateretour,
                     statut: r.statut,
-                    id: r.idRetour
+                    id: r.idretour
                 });
                 return;
             }
@@ -1534,7 +1534,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 qte: qtes,
                 date: r.dateretour,
                 statut: r.statut,
-                id: r.idRetour
+                id: r.idretour
             });
         });
         document.getElementById('retoursTableBody').innerHTML = rows.map(r =>
@@ -1827,7 +1827,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('editRetour appelé avec id:', id);
         editRetourId = id;
         // Correction ici :
-        const retour = App.retours.find(r => String(r.idRetour) === String(id));
+        const retour = App.retours.find(r => String(r.idretour) === String(id));
         if (!retour) {
             alert('Retour introuvable');
             return;
@@ -1845,7 +1845,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (commentaireInput) commentaireInput.value = retour.Commentaire || retour.commentaire || '';
         // Met l'id dans le champ caché
         const idInput = document.getElementById('edit_retour_id');
-        if (idInput) idInput.value = retour.idRetour || retour.id;
+        if (idInput) idInput.value = retour.idretour || retour.id;
         // Change le titre et le bouton
         const title = document.getElementById('retourModalTitle');
         if (title) title.textContent = 'Modifier Retour';
