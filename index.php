@@ -5,19 +5,22 @@ session_start();
 require_once __DIR__ . '/config/db.php';
 
 // Fetch all users with their credentials for display
-$users_query = $conn->query("SELECT u.idUtilisateur, u.Nom, u.Prenom, u.Identifiant, r.Role FROM Utilisateur u LEFT JOIN Role r ON u.idRole = r.idRole WHERE u.Identifiant IS NOT NULL AND u.Identifiant != '' ORDER BY u.Nom, u.Prenom");
-if ($users_query) {
-    // Compatibilité avec PDO et MySQLi
-    if (method_exists($users_query, 'fetch_all')) {
-        $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
-    } else {
-        // Pour PDO wrapper
-        $all_users = [];
-        while ($row = $users_query->fetch_assoc()) {
-            $all_users[] = $row;
+$all_users = [];
+try {
+    $users_query = $conn->query("SELECT u.idUtilisateur, u.Nom, u.Prenom, u.Identifiant, r.Role FROM Utilisateur u LEFT JOIN Role r ON u.idRole = r.idRole WHERE u.Identifiant IS NOT NULL AND u.Identifiant != '' ORDER BY u.Nom, u.Prenom");
+    if ($users_query) {
+        // Compatibilité avec PDO et MySQLi
+        if (method_exists($users_query, 'fetch_all')) {
+            $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
+        } else {
+            // Pour PDO wrapper
+            while ($row = $users_query->fetch_assoc()) {
+                $all_users[] = $row;
+            }
         }
     }
-} else {
+} catch (Exception $e) {
+    error_log("Error fetching users: " . $e->getMessage());
     $all_users = [];
 }
 
@@ -249,39 +252,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
             
-            <?php if (!empty($all_users)): ?>
             <div class="mt-4 pt-4 border-t border-gray-300">
                 <div class="mb-2">
                     <h3 class="text-xs font-semibold text-gray-700 mb-1 flex items-center">
                         <i class="fas fa-users mr-1"></i>Comptes disponibles
                     </h3>
                 </div>
+                <?php if (!empty($all_users)): ?>
                 <div class="users-card p-2">
                     <?php foreach ($all_users as $user): ?>
                         <?php
                         $roleClass = '';
-                        if (stripos($user['Role'], 'Admin') !== false) $roleClass = 'role-admin';
-                        else if (stripos($user['Role'], 'Stock') !== false) $roleClass = 'role-stock';
-                        else if (stripos($user['Role'], 'Groupe') !== false) $roleClass = 'role-groupe';
-                        else if (stripos($user['Role'], 'Réception') !== false) $roleClass = 'role-reception';
+                        $role = $user['Role'] ?? '';
+                        if (stripos($role, 'Admin') !== false) $roleClass = 'role-admin';
+                        else if (stripos($role, 'Stock') !== false) $roleClass = 'role-stock';
+                        else if (stripos($role, 'Groupe') !== false) $roleClass = 'role-groupe';
+                        else if (stripos($role, 'Réception') !== false || stripos($role, 'Reception') !== false) $roleClass = 'role-reception';
+                        
+                        $identifiant = $user['Identifiant'] ?? '';
+                        $password = $passwords_map[$identifiant] ?? 'N/A';
                         ?>
-                        <div class="user-item rounded-lg" onclick="fillCredentials('<?= htmlspecialchars($user['Identifiant']) ?>', '<?= htmlspecialchars($passwords_map[$user['Identifiant']] ?? '') ?>')">
+                        <div class="user-item rounded-lg" onclick="fillCredentials('<?= htmlspecialchars($identifiant) ?>', '<?= htmlspecialchars($password) ?>')">
                             <div class="flex items-center justify-between">
                                 <div class="flex-1">
                                     <div class="font-medium text-xs text-gray-800">
-                                        <?= htmlspecialchars($user['Nom'] . ' ' . $user['Prenom']) ?>
+                                        <?= htmlspecialchars(($user['Nom'] ?? '') . ' ' . ($user['Prenom'] ?? '')) ?>
                                     </div>
                                     <div class="text-xs text-gray-600">
                                         <i class="fas fa-user-circle mr-1"></i>
-                                        <strong>ID:</strong> <span class="font-mono"><?= htmlspecialchars($user['Identifiant']) ?></span>
+                                        <strong>ID:</strong> <span class="font-mono"><?= htmlspecialchars($identifiant) ?></span>
                                         <span class="mx-2">|</span>
                                         <i class="fas fa-key mr-1"></i>
-                                        <strong>MDP:</strong> <span class="font-mono"><?= htmlspecialchars($passwords_map[$user['Identifiant']] ?? 'N/A') ?></span>
+                                        <strong>MDP:</strong> <span class="font-mono"><?= htmlspecialchars($password) ?></span>
                                     </div>
                                 </div>
                                 <div class="ml-2">
                                     <span class="role-badge <?= $roleClass ?>" style="font-size: 0.7rem; padding: 1px 6px;">
-                                        <?= htmlspecialchars($user['Role']) ?>
+                                        <?= htmlspecialchars($role) ?>
                                     </span>
                                 </div>
                             </div>
@@ -291,8 +298,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-xs text-gray-500 mt-2 text-center">
                     <i class="fas fa-mouse-pointer mr-1"></i>Cliquez sur un utilisateur pour remplir les identifiants
                 </p>
+                <?php else: ?>
+                <div class="text-center py-4 text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>Aucun utilisateur trouvé dans la base de données
+                </div>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
         </div>
     </div>
     <script>
