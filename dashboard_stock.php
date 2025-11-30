@@ -270,25 +270,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     // 2. Récupérer les Fabrications et les formater comme des demandes
     $fabrications_as_demandes = [];
-    $resFab = $conn->query("SELECT f.idLot, f.datecreation AS DateCreation, f.statutfabrication AS StatutFabrication, f.idutilisateur AS idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, f.statutfabrication, f.idutilisateur, u.nom, u.prenom ORDER BY f.datecreation DESC");
+    $resFab = $conn->query("SELECT f.idlot AS idLot, f.datecreation AS DateCreation, f.statutfabrication AS StatutFabrication, f.idutilisateur AS idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idlot IS NOT NULL AND f.idlot != '' GROUP BY f.idlot, f.datecreation, f.statutfabrication, f.idutilisateur, u.nom, u.prenom ORDER BY f.datecreation DESC");
     if ($resFab) {
         while($lot = $resFab->fetch_assoc()) {
             $lot_details = [];
-            $resDet = $conn->query("SELECT fab.RefEchantillon, fab.Qte, e.Famille, e.Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.RefEchantillon = e.RefEchantillon WHERE fab.idLot = '{$lot['idLot']}'");
+            $idLot = $lot['idLot'] ?? $lot['idlot'] ?? '';
+            $resDet = $conn->query("SELECT fab.refechantillon AS RefEchantillon, fab.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.refechantillon = e.refechantillon WHERE fab.idlot = '" . $conn->real_escape_string($idLot) . "'");
             if ($resDet) {
                 while($det = $resDet->fetch_assoc()) {
-                    $lot_details[] = ['refEchantillon' => $det['RefEchantillon'], 'famille' => $det['Famille'], 'couleur' => $det['Couleur'], 'qte' => $det['Qte']];
+                    $lot_details[] = ['refEchantillon' => $det['RefEchantillon'] ?? $det['refechantillon'] ?? '', 'famille' => $det['Famille'] ?? $det['famille'] ?? '', 'couleur' => $det['Couleur'] ?? $det['couleur'] ?? '', 'qte' => $det['Qte'] ?? $det['qte'] ?? 0];
                 }
             }
             $fabrications_as_demandes[] = [
-                'idDemande' => $lot['idLot'],
-                'NomDemandeur' => $lot['NomDemandeur'],
-                'PrenomDemandeur' => $lot['PrenomDemandeur'],
+                'idDemande' => $idLot,
+                'NomDemandeur' => $lot['NomDemandeur'] ?? $lot['nom'] ?? '',
+                'PrenomDemandeur' => $lot['PrenomDemandeur'] ?? $lot['prenom'] ?? '',
                 'echantillons' => $lot_details,
-                'DateDemande' => $lot['DateCreation'],
-                'Statut' => $lot['StatutFabrication'],
+                'DateDemande' => $lot['DateCreation'] ?? $lot['datecreation'] ?? '',
+                'Statut' => $lot['StatutFabrication'] ?? $lot['statutfabrication'] ?? '',
                 'TypeDemande' => 'fabrication',
-                'request_date' => $lot['DateCreation'],
+                'request_date' => $lot['DateCreation'] ?? $lot['datecreation'] ?? '',
             ];
         }
     }
@@ -317,15 +318,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
     // --- FABRICATION CENTER MODAL ---
     $fabrications = [];
-    $resFab = $conn->query("SELECT f.*, e.Famille, e.Couleur, e.Taille 
+    $resFab = $conn->query("SELECT f.*, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, f.refechantillon AS RefEchantillon, f.qte AS Qte, f.statutfabrication AS StatutFabrication, f.datecreation AS DateCreation
                             FROM Fabrication f 
                             LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon 
-                            WHERE f.idLot IS NOT NULL AND f.idLot != ''
-                            ORDER BY f.datecreation DESC, f.idLot DESC");
+                            WHERE f.idlot IS NOT NULL AND f.idlot != ''
+                            ORDER BY f.datecreation DESC, f.idlot DESC");
     $groupedFabrications = [];
     if ($resFab) {
-    while ($row = $resFab->fetch_assoc()) {
-            $groupedFabrications[$row['idLot']][] = $row;
+        while ($row = $resFab->fetch_assoc()) {
+            $idLot = $row['idlot'] ?? $row['idLot'] ?? '';
+            $groupedFabrications[$idLot][] = $row;
         }
     }
     $data['grouped_fabrications'] = $groupedFabrications;
@@ -598,7 +600,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     $idLot = $_GET['idLot'];
     $details = [];
-    $stmt = $conn->prepare("SELECT f.refechantillon AS RefEchantillon, f.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idLot = ?");
+    $stmt = $conn->prepare("SELECT f.refechantillon AS RefEchantillon, f.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idlot = ?");
     $stmt->bind_param("s", $idLot);
     if ($stmt->execute()) {
         $result = $stmt->get_result();
@@ -627,13 +629,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         // Récupérer l'état initial du lot
         $oldItems = [];
-        $resOld = $conn->query("SELECT RefEchantillon, Qte FROM Fabrication WHERE idLot = '$idLot'");
+        $resOld = $conn->query("SELECT refechantillon AS RefEchantillon, qte AS Qte FROM Fabrication WHERE idlot = '" . $conn->real_escape_string($idLot) . "'");
         while ($row = $resOld->fetch_assoc()) {
-            $oldItems[$row['RefEchantillon']] = $row['Qte'];
+            $ref = $row['RefEchantillon'] ?? $row['refechantillon'] ?? '';
+            $qte = $row['Qte'] ?? $row['qte'] ?? 0;
+            $oldItems[$ref] = $qte;
         }
 
         // Récupérer les métadonnées du lot avant de le supprimer
-        $stmt_meta = $conn->prepare("SELECT idUtilisateur, idValidateur, DateCreation, StatutFabrication FROM Fabrication WHERE idLot = ? LIMIT 1");
+        $stmt_meta = $conn->prepare("SELECT idutilisateur AS idUtilisateur, idvalidateur AS idValidateur, datecreation AS DateCreation, statutfabrication AS StatutFabrication FROM Fabrication WHERE idlot = ? LIMIT 1");
         $stmt_meta->bind_param("s", $idLot);
         $stmt_meta->execute();
         $meta_result = $stmt_meta->get_result();
@@ -644,7 +648,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt_meta->close();
 
         // 1. Supprimer les anciennes entrées pour ce lot
-        $stmtDel = $conn->prepare("DELETE FROM Fabrication WHERE idLot = ?");
+        $stmtDel = $conn->prepare("DELETE FROM Fabrication WHERE idlot = ?");
         $stmtDel->bind_param("s", $idLot);
         $stmtDel->execute();
         $stmtDel->close();
@@ -721,21 +725,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $user = $_SESSION['user'];
     $userId = $user['id'];
     $details = [];
-    $resDet = $conn->query("SELECT RefEchantillon, Qte FROM Fabrication WHERE idLot = '$idLot'");
+    $resDet = $conn->query("SELECT refechantillon AS RefEchantillon, qte AS Qte FROM Fabrication WHERE idlot = '" . $conn->real_escape_string($idLot) . "'");
     while ($row = $resDet->fetch_assoc()) {
-        $ref = $row['RefEchantillon'];
-        $qte = $row['Qte'];
-        $resEch = $conn->query("SELECT Famille, Couleur, Taille FROM Echantillon WHERE RefEchantillon = '$ref' LIMIT 1");
+        $ref = $row['RefEchantillon'] ?? $row['refechantillon'] ?? '';
+        $qte = $row['Qte'] ?? $row['qte'] ?? 0;
+        $resEch = $conn->query("SELECT famille AS Famille, couleur AS Couleur, taille AS Taille FROM Echantillon WHERE refechantillon = '" . $conn->real_escape_string($ref) . "' LIMIT 1");
         $rowEch = $resEch ? $resEch->fetch_assoc() : null;
-        $famille = $rowEch['Famille'] ?? '';
-        $couleur = $rowEch['Couleur'] ?? '';
-        $taille = $rowEch['Taille'] ?? '';
+        $famille = $rowEch['Famille'] ?? $rowEch['famille'] ?? '';
+        $couleur = $rowEch['Couleur'] ?? $rowEch['couleur'] ?? '';
+        $taille = $rowEch['Taille'] ?? $rowEch['taille'] ?? '';
         $details[] = "$ref (Supprimé, Qté : $qte, Famille : $famille, Couleur : $couleur, Taille : $taille)";
     }
     $detailsString = implode(', ', $details);
     $conn->begin_transaction();
     try {
-        $stmt = $conn->prepare("DELETE FROM Fabrication WHERE idLot = ?");
+        $stmt = $conn->prepare("DELETE FROM Fabrication WHERE idlot = ?");
         $stmt->bind_param("s", $idLot);
         if (!$stmt->execute()) {
             throw new Exception($stmt->error);
@@ -765,7 +769,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Vérifier si le lot n'est pas déjà terminé
-        $stmt_check = $conn->prepare("SELECT StatutFabrication FROM Fabrication WHERE idLot = ? LIMIT 1");
+        $stmt_check = $conn->prepare("SELECT statutfabrication AS StatutFabrication FROM Fabrication WHERE idlot = ? LIMIT 1");
         $stmt_check->bind_param("s", $idLot);
         $stmt_check->execute();
         $res_check = $stmt_check->get_result();
@@ -773,13 +777,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if (!$fab_status) {
             throw new Exception("Lot de fabrication non trouvé.");
         }
-        if ($fab_status['StatutFabrication'] === 'Terminée') {
+        $statutFab = $fab_status['StatutFabrication'] ?? $fab_status['statutfabrication'] ?? '';
+        if (strtolower($statutFab) === 'terminée') {
             throw new Exception("Ce lot de fabrication est déjà terminé.");
         }
 
         // 2. Récupérer les échantillons du lot
         $echantillons_a_fabriquer = [];
-        $stmt_items = $conn->prepare("SELECT RefEchantillon, Qte FROM Fabrication WHERE idLot = ?");
+        $stmt_items = $conn->prepare("SELECT refechantillon AS RefEchantillon, qte AS Qte FROM Fabrication WHERE idlot = ?");
         $stmt_items->bind_param("s", $idLot);
         $stmt_items->execute();
         $result_items = $stmt_items->get_result();
@@ -794,8 +799,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // 3. Mettre à jour le stock pour chaque échantillon
         $stmt_update_stock = $conn->prepare("UPDATE Echantillon SET qte = qte + ? WHERE refechantillon = ?");
         foreach ($echantillons_a_fabriquer as $ech) {
-            $qte = $ech['Qte'];
-            $ref = $ech['RefEchantillon'];
+            $qte = $ech['Qte'] ?? $ech['qte'] ?? 0;
+            $ref = $ech['RefEchantillon'] ?? $ech['refechantillon'] ?? '';
             $stmt_update_stock->bind_param("is", $qte, $ref);
             if (!$stmt_update_stock->execute()) {
                 throw new Exception("Erreur de mise à jour du stock pour {$ref}: " . $stmt_update_stock->error);
@@ -804,7 +809,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt_update_stock->close();
 
         // 4. Mettre à jour le statut du lot de fabrication
-        $stmt_update_lot = $conn->prepare("UPDATE Fabrication SET StatutFabrication = 'Terminée' WHERE idLot = ?");
+        $stmt_update_lot = $conn->prepare("UPDATE Fabrication SET statutfabrication = 'Terminée' WHERE idlot = ?");
         $stmt_update_lot->bind_param("s", $idLot);
         if (!$stmt_update_lot->execute()) {
             throw new Exception("Erreur de mise à jour du statut du lot: " . $stmt_update_lot->error);
@@ -1149,15 +1154,16 @@ $colorMap = [
 
 // Charger les fabrications pour le centre de fabrication
 $fabrications = [];
-$resFab = $conn->query("SELECT f.*, e.Famille, e.Couleur, e.Taille 
+$resFab = $conn->query("SELECT f.*, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, f.refechantillon AS RefEchantillon, f.qte AS Qte, f.statutfabrication AS StatutFabrication, f.datecreation AS DateCreation, f.idlot AS idLot
                         FROM Fabrication f 
                         LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon 
-                        WHERE f.idLot IS NOT NULL AND f.idLot != ''
-                        ORDER BY f.DateCreation DESC, f.idLot DESC");
+                        WHERE f.idlot IS NOT NULL AND f.idlot != ''
+                        ORDER BY f.datecreation DESC, f.idlot DESC");
 $groupedFabrications = [];
 if ($resFab) {
-while ($row = $resFab->fetch_assoc()) {
-        $groupedFabrications[$row['idLot']][] = $row;
+    while ($row = $resFab->fetch_assoc()) {
+        $idLot = $row['idLot'] ?? $row['idlot'] ?? '';
+        $groupedFabrications[$idLot][] = $row;
     }
 }
 ?>
