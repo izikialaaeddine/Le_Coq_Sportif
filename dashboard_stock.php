@@ -221,15 +221,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     // === AJOUT : Récupérer les retours en attente ===
     $res = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Retour r
-                         JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
-                         ORDER BY r.dateretour DESC LIMIT 100");
+                         JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur
+                         ORDER BY r.DateRetour DESC LIMIT 100");
     if ($res && $res->num_rows > 0) {
         $retours = [];
         while ($row = $res->fetch_assoc()) {
-            $idRetour = $row['idRetour'] ?? $row['idretour'] ?? '';
+            $idRetour = $row['idRetour'];
             // Get all echantillons for this retour
             $echs = [];
-            $res2 = $conn->query("SELECT re.refechantillon AS refEchantillon, re.qte AS qte, e.famille AS famille, e.couleur AS couleur FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.refechantillon = e.refechantillon WHERE re.idretour = " . intval($idRetour));
+            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idRetour = " . intval($idRetour));
             if ($res2) {
                 while ($e = $res2->fetch_assoc()) {
                     $echs[] = $e;
