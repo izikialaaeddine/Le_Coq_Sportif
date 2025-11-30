@@ -32,7 +32,7 @@ function ajouterHistorique($conn, $idUtilisateur, $refEchantillon, $typeAction, 
     if ($dateAction === null) {
         $dateAction = date('Y-m-d H:i:s');
     }
-    $stmt = $conn->prepare("INSERT INTO Historique (idutilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO Historique (idutilisateur, refechantillon, typeaction, dateaction, description) VALUES (?, ?, ?, ?, ?)");
     if (!$stmt) { return false; }
     $stmt->bind_param("issss", $idUtilisateur, $refEchantillon, $typeAction, $dateAction, $description);
     if (!$stmt->execute()) { return false; }
