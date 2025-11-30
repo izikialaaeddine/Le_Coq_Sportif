@@ -1458,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('=== FIN DEBUG ===');
 
         document.getElementById('demandesTableBody').innerHTML = filtered.map(d => {
-            let statutPrincipal = d.statut;
+            let statutPrincipal = d.statut || 'En attente';
             let actionStock = '';
             const specialStatus = ['prêt pour retrait', 'en fabrication', 'attente inter-service'];
 
@@ -1681,7 +1681,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     qte: item.qte
                 })),
                 date: new Date().toISOString(),
-                statut: 'En attente'
+                statut: 'En attente',
+                Statut: 'En attente'
             };
             
             App.demandes.unshift(newDemande);
@@ -2358,7 +2359,8 @@ function saveDemande() {
                     qte: item.qte
                 })),
                 date: new Date().toISOString(),
-                statut: 'En attente'
+                statut: 'En attente',
+                Statut: 'En attente'
             };
             
             App.demandes.unshift(newDemande);
