@@ -7,7 +7,16 @@ require_once __DIR__ . '/config/db.php';
 // Fetch all users with their credentials for display
 $users_query = $conn->query("SELECT u.idUtilisateur, u.Nom, u.Prenom, u.Identifiant, r.Role FROM Utilisateur u LEFT JOIN Role r ON u.idRole = r.idRole WHERE u.Identifiant IS NOT NULL AND u.Identifiant != '' ORDER BY u.Nom, u.Prenom");
 if ($users_query) {
-    $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
+    // Compatibilité avec PDO et MySQLi
+    if (method_exists($users_query, 'fetch_all')) {
+        $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
+    } else {
+        // Pour PDO wrapper
+        $all_users = [];
+        while ($row = $users_query->fetch_assoc()) {
+            $all_users[] = $row;
+        }
+    }
 } else {
     $all_users = [];
 }
