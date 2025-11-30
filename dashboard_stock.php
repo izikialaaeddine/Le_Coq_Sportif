@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Demande d
                          JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-                         ORDER BY d.datedemande DESC");
+                         ORDER BY d.datedemande DESC LIMIT 100");
     if ($res) {
         while ($row = $res->fetch_assoc()) {
             $row['echantillons'] = [];
