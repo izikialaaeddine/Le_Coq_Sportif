@@ -1118,18 +1118,7 @@ function getTextColor($bgHex) {
     return ($luminance > 0.6) ? '#222' : '#fff'; // Noir si fond clair, blanc sinon
 }
 
-// Récupérer les échantillons avec alias pour PostgreSQL
-$echantillons = [];
-$res = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.description AS Description, e.datecreation AS DateCreation, e.idutilisateur AS idUtilisateur FROM Echantillon e ORDER BY e.datecreation DESC");
-if ($res) {
-    if (method_exists($res, 'fetch_all')) {
-        $echantillons = $res->fetch_all(MYSQLI_ASSOC);
-    } else {
-        while ($row = $res->fetch_assoc()) {
-            $echantillons[] = $row;
-        }
-    }
-}
+// Les échantillons sont déjà récupérés plus haut (ligne 456)
 
 $colorMap = [
     'Rouge' => '#ef4444',
