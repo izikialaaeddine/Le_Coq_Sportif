@@ -1329,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Calcul des demandes validées (incluant les statuts spéciaux)
             const demandesValidees = App.demandes.filter(d => {
-                const statut = d.statut.toLowerCase();
+                const statut = (d.statut || '').toLowerCase();
                 return statut === 'validée' || statut === 'approuvée' || 
                        statut === 'prêt pour retrait' || statut === 'en fabrication' || 
                        statut === 'attente inter-service';
@@ -1429,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusFilter) {
                 if (statusFilter === 'Validée') {
                     // Pour "Validée", inclure aussi les statuts spéciaux
-                    const statut = d.statut.toLowerCase();
+                    const statut = (d.statut || '').toLowerCase();
                     if (!(statut === 'validée' || statut === 'approuvée' || 
                           statut === 'prêt pour retrait' || statut === 'en fabrication' || 
                           statut === 'attente inter-service')) {
@@ -1465,15 +1465,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (specialStatus.includes(statutPrincipal.toLowerCase())) {
                 actionStock = d.statut;
                 statutPrincipal = 'Validée'; // On considère que c'est un sous-statut de 'Validée'
-            } else if (statutPrincipal.toLowerCase() === 'approuvée') {
+            } else if (statutPrincipal && statutPrincipal.toLowerCase() === 'approuvée') {
                 statutPrincipal = 'Validée';
             }
 
             return `<tr class="hover:bg-gray-50 border-b border-gray-200">
-                <td class="px-4 py-3 align-top">${d.echantillons.map(e => `<div>${e.ref}</div>`).join('')}</td>
-                <td class="px-4 py-3 align-top">${d.echantillons.map(e => `<div>${e.famille}</div>`).join('')}</td>
-                <td class="px-4 py-3 align-top">${d.echantillons.map(e => `<div>${e.couleur}</div>`).join('')}</td>
-                <td class="px-4 py-3 align-top">${d.echantillons.map(e => `<div>${e.qte}</div>`).join('')}</td>
+                <td class="px-4 py-3 align-top">${(d.echantillons || []).map(e => `<div>${e.ref || ''}</div>`).join('')}</td>
+                <td class="px-4 py-3 align-top">${(d.echantillons || []).map(e => `<div>${e.famille || ''}</div>`).join('')}</td>
+                <td class="px-4 py-3 align-top">${(d.echantillons || []).map(e => `<div>${e.couleur || ''}</div>`).join('')}</td>
+                <td class="px-4 py-3 align-top">${(d.echantillons || []).map(e => `<div>${e.qte || ''}</div>`).join('')}</td>
                 <td class="px-4 py-3 align-top">${formatDate(d.date)}</td>
                 <td class="px-4 py-3 align-top"><span class="badge ${getBadgeClass(statutPrincipal)}">${statutPrincipal}</span></td>
                 <td class="px-4 py-3 align-top">${actionStock}</td>
@@ -1507,9 +1507,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filteredRetours.forEach(r => {
             if (!query) {
                 // Si pas de recherche, afficher tous les échantillons
-                const refs = r.echantillons.map(e => e.RefEchantillon || e.refEchantillon || e.ref || '').join('<br>');
-                const familles = r.echantillons.map(e => e.famille || '').join('<br>');
-                const couleurs = r.echantillons.map(e => e.couleur || '').join('<br>');
+                const refs = (r.echantillons || []).map(e => e.RefEchantillon || e.refEchantillon || e.ref || '').join('<br>');
+                const familles = (r.echantillons || []).map(e => e.famille || '').join('<br>');
+                const couleurs = (r.echantillons || []).map(e => e.couleur || '').join('<br>');
                 const qtes = r.echantillons.map(e => e.qte || '').join('<br>');
                 rows.push({
                     ref: refs,
