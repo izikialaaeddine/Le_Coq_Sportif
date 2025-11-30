@@ -18,9 +18,14 @@ ini_set('display_startup_errors', 1);
 try {
     require_once __DIR__ . '/config/db.php';
 } catch (Exception $e) {
-    die("Erreur de connexion DB: " . $e->getMessage());
+    $db_error = "Erreur de connexion DB: " . $e->getMessage();
+    error_log($db_error);
+    // Ne pas die() ici, continuer pour afficher l'erreur dans la page
+    $conn = null;
 } catch (Error $e) {
-    die("Erreur fatale DB: " . $e->getMessage());
+    $db_error = "Erreur fatale DB: " . $e->getMessage();
+    error_log($db_error);
+    $conn = null;
 }
 
 // Fetch all users with their credentials for display
