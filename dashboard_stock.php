@@ -9,13 +9,13 @@ require_once __DIR__ . '/config/db.php';
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_zero_stock_samples') {
     header('Content-Type: application/json');
     $res = $conn->query("
-        SELECT e.RefEchantillon, e.Famille, e.Couleur, e.Taille, e.Qte
+        SELECT e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte
         FROM Echantillon e
-        WHERE e.Qte = 0
-        AND e.RefEchantillon NOT IN (
-            SELECT f.RefEchantillon
+        WHERE e.qte = 0
+        AND e.refechantillon NOT IN (
+            SELECT f.refechantillon
             FROM Fabrication f
-            WHERE f.StatutFabrication != 'Terminée'
+            WHERE f.statutfabrication != 'Terminée'
         )
     ");
     $samples = [];
@@ -62,14 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Mettre à jour le statut de la demande
-        $stmt = $conn->prepare("UPDATE Demande SET Statut = ? WHERE idDemande = ? AND Statut = 'Approuvée'");
+        $stmt = $conn->prepare("UPDATE Demande SET statut = ? WHERE iddemande = ? AND statut = 'Approuvée'");
         $stmt->bind_param("si", $newStatus, $idDemande);
         if (!$stmt->execute()) { throw new Exception("Erreur de mise à jour de la demande: " . $stmt->error); }
         if ($stmt->affected_rows === 0) { throw new Exception("La demande n'est pas approuvée ou n'existe pas."); }
         
         // 2. Récupérer les échantillons de la demande
         $echantillonsDemandes = [];
-        $resEch = $conn->query("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE idDemande = $idDemande");
+        $resEch = $conn->query("SELECT refechantillon AS refEchantillon, qte FROM DemandeEchantillon WHERE iddemande = $idDemande");
         while ($e = $resEch->fetch_assoc()) { $echantillonsDemandes[] = $e; }
 
         $refs = array_map(fn($e) => $e['refEchantillon'], $echantillonsDemandes);
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         }
         $stats['totalSamples'] = $stats['availableSamples'] + $stats['borrowedSamples'] + $stats['fabricationSamples'];
     }
-    $resDemandes = $conn->query("SELECT Statut, TypeDemande, COUNT(*) as count FROM Demande GROUP BY Statut, TypeDemande");
+    $resDemandes = $conn->query("SELECT statut AS Statut, typedemande AS TypeDemande, COUNT(*) as count FROM Demande GROUP BY statut, typedemande");
     if ($resDemandes) {
         while($row = $resDemandes->fetch_assoc()) {
             $status = strtolower(trim($row['Statut']));
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         }
     }
     // Stats Retours pour la section "Échantillons Retournés"
-    $resRetours = $conn->query("SELECT Statut, COUNT(*) as count FROM Retour GROUP BY Statut");
+    $resRetours = $conn->query("SELECT statut AS Statut, COUNT(*) as count FROM Retour GROUP BY statut");
     if ($resRetours) {
         while($row = $resRetours->fetch_assoc()) {
             $status = strtolower(trim($row['Statut']));
@@ -395,7 +395,7 @@ if ($resRetours) {
 // Les retours sont maintenant gérés dans leur propre section
 
 // Stats Fabrications - Debug complet pour voir toutes les données
-$debugQuery = "SELECT StatutFabrication, idLot, COUNT(*) as count FROM Fabrication GROUP BY StatutFabrication, idLot ORDER BY StatutFabrication";
+$debugQuery = "SELECT statutfabrication AS StatutFabrication, idLot, COUNT(*) as count FROM Fabrication GROUP BY statutfabrication, idLot ORDER BY statutfabrication";
 $debugRes = $conn->query($debugQuery);
 if ($debugRes) {
     error_log("=== DEBUG FABRICATIONS ===");
@@ -406,7 +406,7 @@ if ($debugRes) {
 }
 
 // Stats Fabrications - Ajout des statistiques des fabrications avec debug
-$resFabrications = $conn->query("SELECT StatutFabrication, COUNT(DISTINCT idLot) as count FROM Fabrication WHERE idLot IS NOT NULL AND idLot != '' GROUP BY StatutFabrication");
+$resFabrications = $conn->query("SELECT statutfabrication AS StatutFabrication, COUNT(DISTINCT idLot) as count FROM Fabrication WHERE idLot IS NOT NULL AND idLot != '' GROUP BY statutfabrication");
 if ($resFabrications) {
     while($row = $resFabrications->fetch_assoc()) {
         $status = strtolower(trim($row['StatutFabrication']));
@@ -483,16 +483,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $query = "SELECT r.idretour AS idDemande, r.dateretour AS DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.statut AS Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.statut = 'En attente' ORDER BY r.dateretour DESC";
             break;
         case 'approved_returns':
-            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut IN ('Validé', 'Approuvé', 'Retourné') ORDER BY r.DateRetour DESC";
+            $query = "SELECT r.idretour AS idDemande, r.dateretour AS DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.statut AS Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.statut IN ('Validé', 'Approuvé', 'Retourné') ORDER BY r.dateretour DESC";
             break;
         case 'rejected_returns':
-            $query = "SELECT r.idRetour as idDemande, r.DateRetour as DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.Statut as Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.Statut = 'Refusé' ORDER BY r.DateRetour DESC";
+            $query = "SELECT r.idretour AS idDemande, r.dateretour AS DateDemande, u.nom AS Nom, u.prenom AS Prenom, r.statut AS Statut FROM Retour r JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur WHERE r.statut = 'Refusé' ORDER BY r.dateretour DESC";
             break;
         case 'pending_fabrications':
-            $query = "SELECT f.idLot, f.DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.StatutFabrication IN ('En attente', 'En cours') AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC";
+            $query = "SELECT f.idLot, f.datecreation AS DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.statutfabrication AS StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.statutfabrication IN ('En attente', 'En cours') AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, u.nom, u.prenom, f.statutfabrication ORDER BY f.datecreation DESC";
             break;
         case 'completed_fabrications':
-            $query = "SELECT f.idLot, f.DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.StatutFabrication = 'Terminée' AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot ORDER BY f.DateCreation DESC";
+            $query = "SELECT f.idLot, f.datecreation AS DateCreation, u.nom AS Nom, u.prenom AS Prenom, f.statutfabrication AS StatutFabrication FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.statutfabrication = 'Terminée' AND f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, u.nom, u.prenom, f.statutfabrication ORDER BY f.datecreation DESC";
             break;
     }
 
