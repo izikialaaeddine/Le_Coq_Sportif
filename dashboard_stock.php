@@ -207,13 +207,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     if ($res) {
         while ($row = $res->fetch_assoc()) {
             $row['echantillons'] = [];
-            $idDemande = $row['idDemande'];
-            $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE iddemande = $idDemande");
-                if($res2) {
-            while ($e = $res2->fetch_assoc()) {
-                $row['echantillons'][] = $e;
-            }
+            $idDemande = $row['idDemande'] ?? $row['iddemande'] ?? '';
+            $res2 = $conn->query("SELECT de.refechantillon AS refEchantillon, de.qte AS qte, e.famille AS famille, e.couleur AS couleur, e.taille AS taille FROM DemandeEchantillon de LEFT JOIN Echantillon e ON de.refechantillon = e.refechantillon WHERE de.iddemande = " . intval($idDemande));
+            if($res2) {
+                while ($e = $res2->fetch_assoc()) {
+                    $row['echantillons'][] = $e;
                 }
+            }
                 $row['request_date'] = $row['DateDemande']; // Clé de tri commune
                 $demandes_et_retours[] = $row;
         }
@@ -223,25 +223,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $res = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Retour r
                          JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
-                         ORDER BY r.dateretour DESC");
+                         ORDER BY r.dateretour DESC LIMIT 100");
     if ($res && $res->num_rows > 0) {
-        echo '<tr><td colspan="7" style="color:green">DEBUG: Il y a ' . $res->num_rows . ' retours</td></tr>';
         $retours = [];
         while ($row = $res->fetch_assoc()) {
-            $idRetour = $row['idRetour'];
+            $idRetour = $row['idRetour'] ?? $row['idretour'] ?? '';
             // Get all echantillons for this retour
             $echs = [];
-            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idretour = $idRetour");
+            $res2 = $conn->query("SELECT re.refechantillon AS refEchantillon, re.qte AS qte, e.famille AS famille, e.couleur AS couleur FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.refechantillon = e.refechantillon WHERE re.idretour = " . intval($idRetour));
             if ($res2) {
                 while ($e = $res2->fetch_assoc()) {
                     $echs[] = $e;
                 }
             }
             // Prepare display: concatenate all refs, familles, couleurs, qtes
-            $refs = implode('<br>', array_map(fn($e) => htmlspecialchars($e['RefEchantillon']), $echs));
-            $familles = implode('<br>', array_map(fn($e) => htmlspecialchars($e['famille']), $echs));
-            $couleurs = implode('<br>', array_map(fn($e) => htmlspecialchars($e['couleur']), $echs));
-            $qtes = implode('<br>', array_map(fn($e) => htmlspecialchars($e['qte']), $echs));
+            $refs = implode('<br>', array_map(fn($e) => htmlspecialchars($e['refEchantillon'] ?? $e['RefEchantillon'] ?? $e['refechantillon'] ?? ''), $echs));
+            $familles = implode('<br>', array_map(fn($e) => htmlspecialchars($e['famille'] ?? ''), $echs));
+            $couleurs = implode('<br>', array_map(fn($e) => htmlspecialchars($e['couleur'] ?? ''), $echs));
+            $qtes = implode('<br>', array_map(fn($e) => htmlspecialchars($e['qte'] ?? ''), $echs));
             ?>
             <tr>
                 <td class="px-4 py-3"><?= $refs ?></td>
@@ -264,8 +263,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             </tr>
             <?php
         }
-    } else {
-        echo '<tr><td colspan="7" style="color:orange">DEBUG: Aucun retour trouvé dans la base</td></tr>';
     }
 
     // 2. Récupérer les Fabrications et les formater comme des demandes
@@ -1777,17 +1774,17 @@ if ($resFab) {
                                     $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                                                          FROM Demande d
                                                          JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-                                                         ORDER BY d.datedemande DESC");
+                                                         ORDER BY d.datedemande DESC LIMIT 100");
                                     if ($res) {
                                     while ($row = $res->fetch_assoc()) {
                                         $row['echantillons'] = [];
-                                        $idDemande = $row['idDemande'];
-                                        $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE iddemande = $idDemande");
-                                            if($res2) {
-                                        while ($e = $res2->fetch_assoc()) {
-                                            $row['echantillons'][] = $e;
-                                        }
+                                        $idDemande = $row['idDemande'] ?? $row['iddemande'] ?? '';
+                                        $res2 = $conn->query("SELECT de.refechantillon AS refEchantillon, de.qte AS qte, e.famille AS famille, e.couleur AS couleur, e.taille AS taille FROM DemandeEchantillon de LEFT JOIN Echantillon e ON de.refechantillon = e.refechantillon WHERE de.iddemande = " . intval($idDemande));
+                                        if($res2) {
+                                            while ($e = $res2->fetch_assoc()) {
+                                                $row['echantillons'][] = $e;
                                             }
+                                        }
                                             $row['request_date'] = $row['DateDemande']; // Clé de tri commune
                                             $demandes_et_retours[] = $row;
                                     }
@@ -1802,14 +1799,14 @@ if ($resFab) {
                                     if ($resRetours) {
                                         while ($row = $resRetours->fetch_assoc()) {
                                             $row['echantillons'] = [];
-                                            $idRetour = $row['idRetour'];
-                                            $res2 = $conn->query("SELECT * FROM RetourEchantillon WHERE idretour = $idRetour");
+                                            $idRetour = $row['idRetour'] ?? $row['idretour'] ?? '';
+                                            $res2 = $conn->query("SELECT re.refechantillon AS refEchantillon, re.qte AS qte, e.famille AS famille, e.couleur AS couleur, e.taille AS taille FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.refechantillon = e.refechantillon WHERE re.idretour = " . intval($idRetour));
                                             if ($res2) {
                                                 while ($e = $res2->fetch_assoc()) {
                                                     $row['echantillons'][] = $e;
                                                 }
                                             }
-                                            $row['request_date'] = $row['DateRetour'];
+                                            $row['request_date'] = $row['DateRetour'] ?? $row['dateretour'] ?? '';
                                             $row['TypeDemande'] = 'retour'; // Pour l'affichage/filtrage JS
                                             $retours[] = $row;
                                         }
@@ -1817,25 +1814,26 @@ if ($resFab) {
 
                                     // 2. Récupérer les Fabrications et les formater comme des demandes
                                     $fabrications_as_demandes = [];
-                                    $resFab = $conn->query("SELECT f.idLot, f.datecreation AS DateCreation, f.statutfabrication AS StatutFabrication, f.idutilisateur AS idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idLot IS NOT NULL AND f.idLot != '' GROUP BY f.idLot, f.datecreation, f.statutfabrication, f.idutilisateur, u.nom, u.prenom ORDER BY f.datecreation DESC");
+                                    $resFab = $conn->query("SELECT f.idlot AS idLot, f.datecreation AS DateCreation, f.statutfabrication AS StatutFabrication, f.idutilisateur AS idUtilisateur, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur FROM Fabrication f JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur WHERE f.idlot IS NOT NULL AND f.idlot != '' GROUP BY f.idlot, f.datecreation, f.statutfabrication, f.idutilisateur, u.nom, u.prenom ORDER BY f.datecreation DESC");
                                     if ($resFab) {
                                         while($lot = $resFab->fetch_assoc()) {
                                             $lot_details = [];
-                                            $resDet = $conn->query("SELECT fab.refechantillon AS RefEchantillon, fab.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.refechantillon = e.refechantillon WHERE fab.idLot = '{$lot['idLot']}'");
+                                            $idLot = $lot['idLot'] ?? $lot['idlot'] ?? '';
+                                            $resDet = $conn->query("SELECT fab.refechantillon AS RefEchantillon, fab.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.refechantillon = e.refechantillon WHERE fab.idlot = '" . $conn->real_escape_string($idLot) . "'");
                                             if ($resDet) {
                                                 while($det = $resDet->fetch_assoc()) {
-                                                    $lot_details[] = ['refEchantillon' => $det['RefEchantillon'], 'famille' => $det['Famille'], 'couleur' => $det['Couleur'], 'qte' => $det['Qte']];
+                                                    $lot_details[] = ['refEchantillon' => $det['RefEchantillon'] ?? $det['refechantillon'] ?? '', 'famille' => $det['Famille'] ?? $det['famille'] ?? '', 'couleur' => $det['Couleur'] ?? $det['couleur'] ?? '', 'qte' => $det['Qte'] ?? $det['qte'] ?? 0];
                                                 }
                                             }
                                             $fabrications_as_demandes[] = [
-                                                'idDemande' => $lot['idLot'],
-                                                'NomDemandeur' => $lot['NomDemandeur'],
-                                                'PrenomDemandeur' => $lot['PrenomDemandeur'],
+                                                'idDemande' => $idLot,
+                                                'NomDemandeur' => $lot['NomDemandeur'] ?? $lot['nom'] ?? '',
+                                                'PrenomDemandeur' => $lot['PrenomDemandeur'] ?? $lot['prenom'] ?? '',
                                                 'echantillons' => $lot_details,
-                                                'DateDemande' => formatDateMoinsUneHeure($lot['DateCreation']),
-                                                'Statut' => $lot['StatutFabrication'],
+                                                'DateDemande' => formatDateMoinsUneHeure($lot['DateCreation'] ?? $lot['datecreation'] ?? ''),
+                                                'Statut' => $lot['StatutFabrication'] ?? $lot['statutfabrication'] ?? '',
                                                 'TypeDemande' => 'fabrication',
-                                                'request_date' => formatDateMoinsUneHeure($lot['DateCreation']),
+                                                'request_date' => formatDateMoinsUneHeure($lot['DateCreation'] ?? $lot['datecreation'] ?? ''),
                                             ];
                                         }
                                     }
@@ -1855,9 +1853,12 @@ if ($resFab) {
                                             <td class="px-4 py-3 text-sm text-gray-700">
                                                 <?php foreach ($demande['echantillons'] as $e): ?>
                                                     <div>
-                                                        <?= htmlspecialchars($e['RefEchantillon'] ?? $e['refEchantillon'] ?? '') ?>
-                                                        <?php if (isset($e['Famille'])): ?> (<?= htmlspecialchars($e['Famille']) ?>)<?php endif; ?>
-                                                        <?php if (isset($e['famille'])): ?> (<?= htmlspecialchars($e['famille']) ?>)<?php endif; ?>
+                                                        <?php 
+                                                        $ref = $e['refEchantillon'] ?? $e['RefEchantillon'] ?? $e['refechantillon'] ?? '';
+                                                        $fam = $e['famille'] ?? $e['Famille'] ?? '';
+                                                        ?>
+                                                        <?= htmlspecialchars($ref) ?>
+                                                        <?php if ($fam): ?> (<?= htmlspecialchars($fam) ?>)<?php endif; ?>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </td>
