@@ -36,5 +36,4 @@ ini_set('max_execution_time', 15);
 
 // Optimiser les requêtes
 ini_set('default_socket_timeout', 5);
-?>
 

@@ -1,13 +1,13 @@
 <?php
+// Démarrer la session AVANT TOUT (avant même error_reporting)
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+
 // Activer l'affichage des erreurs temporairement pour déboguer
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-
-// Démarrer la session AVANT tout
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 // Configuration d'erreurs et performance
 require_once __DIR__ . '/config/error_config.php';
