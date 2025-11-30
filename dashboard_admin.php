@@ -13,7 +13,7 @@ if (isset($_POST['action'])) {
     if ($_POST['action'] == 'add') {
         try {
             $hashedPassword = password_hash($_POST['MotDePasse'], PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO Utilisateur (idRole, Identifiant, MotDePasse, Nom, Prenom) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO Utilisateur (idrole, identifiant, motdepasse, nom, prenom) VALUES (?, ?, ?, ?, ?)");
             $stmt->bind_param("issss", $_POST['idRole'], $_POST['Identifiant'], $hashedPassword, $_POST['Nom'], $_POST['Prenom']);
             
             if ($stmt->execute()) {
@@ -40,7 +40,7 @@ if (isset($_POST['action'])) {
     
     if ($_POST['action'] == 'edit') {
         try {
-            $stmtOld = $conn->prepare("SELECT MotDePasse FROM Utilisateur WHERE idUtilisateur=?");
+            $stmtOld = $conn->prepare("SELECT motdepasse as MotDePasse FROM Utilisateur WHERE idutilisateur=?");
             $stmtOld->bind_param("i", $_POST['idUtilisateur']);
             $stmtOld->execute();
             $stmtOld->bind_result($oldHash);
@@ -56,7 +56,7 @@ if (isset($_POST['action'])) {
                 $hashedPassword = password_hash($newPass, PASSWORD_DEFAULT);
             }
             
-            $stmt = $conn->prepare("UPDATE Utilisateur SET idRole=?, Identifiant=?, MotDePasse=?, Nom=?, Prenom=? WHERE idUtilisateur=?");
+            $stmt = $conn->prepare("UPDATE Utilisateur SET idrole=?, identifiant=?, motdepasse=?, nom=?, prenom=? WHERE idutilisateur=?");
             $stmt->bind_param("issssi", $_POST['idRole'], $_POST['Identifiant'], $hashedPassword, $_POST['Nom'], $_POST['Prenom'], $_POST['idUtilisateur']);
             
             if ($stmt->execute()) {
@@ -83,7 +83,7 @@ if (isset($_POST['action'])) {
     
     if ($_POST['action'] == 'delete') {
         try {
-            $stmt = $conn->prepare("DELETE FROM Utilisateur WHERE idUtilisateur=?");
+            $stmt = $conn->prepare("DELETE FROM Utilisateur WHERE idutilisateur=?");
             $stmt->bind_param("i", $_POST['idUtilisateur']);
             
             if ($stmt->execute()) {
@@ -115,7 +115,7 @@ if (isset($_POST['action'])) {
             $id = $_POST['idUtilisateur'];
             $newPass = $_POST['newPassword'];
             
-            $stmtOld = $conn->prepare("SELECT MotDePasse FROM Utilisateur WHERE idUtilisateur=?");
+            $stmtOld = $conn->prepare("SELECT motdepasse as MotDePasse FROM Utilisateur WHERE idutilisateur=?");
             $stmtOld->bind_param("i", $id);
             $stmtOld->execute();
             $stmtOld->bind_result($oldHash);
@@ -129,7 +129,7 @@ if (isset($_POST['action'])) {
                 ];
             } else {
                 $hashedPassword = password_hash($newPass, PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("UPDATE Utilisateur SET MotDePasse=? WHERE idUtilisateur=?");
+                $stmt = $conn->prepare("UPDATE Utilisateur SET motdepasse=? WHERE idutilisateur=?");
                 $stmt->bind_param("si", $hashedPassword, $id);
                 
                 if ($stmt->execute()) {
@@ -156,8 +156,34 @@ if (isset($_POST['action'])) {
     }
 }
 
-$users = $conn->query("SELECT * FROM Utilisateur")->fetch_all(MYSQLI_ASSOC);
-$roles = $conn->query("SELECT * FROM Role")->fetch_all(MYSQLI_ASSOC);
+// PostgreSQL: utiliser des alias pour les noms de colonnes
+$users_query = $conn->query("SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom FROM Utilisateur u");
+if ($users_query) {
+    if (method_exists($users_query, 'fetch_all')) {
+        $users = $users_query->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $users = [];
+        while ($row = $users_query->fetch_assoc()) {
+            $users[] = $row;
+        }
+    }
+} else {
+    $users = [];
+}
+
+$roles_query = $conn->query("SELECT r.idrole as idRole, r.role as Role FROM Role r");
+if ($roles_query) {
+    if (method_exists($roles_query, 'fetch_all')) {
+        $roles = $roles_query->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $roles = [];
+        while ($row = $roles_query->fetch_assoc()) {
+            $roles[] = $row;
+        }
+    }
+} else {
+    $roles = [];
+}
 
 $search = trim($_GET['search_identifiant'] ?? '');
 $showList = isset($_GET['search_identifiant']) && $_GET['search_identifiant'] !== '';
@@ -340,8 +366,11 @@ if (isset($_SESSION['notification'])) {
                             <label class="block text-sm font-medium mb-1">Rôle</label>
                             <select name="idRole" class="w-full px-3 py-2 border rounded" required>
                                 <option value="">--Rôle--</option>
-                                <?php foreach ($roles as $role): ?>
-                                    <option value="<?= $role['idRole'] ?>"><?= htmlspecialchars($role['Role']) ?></option>
+                                <?php foreach ($roles as $role): 
+                                    $roleId = $role['idRole'] ?? $role['idrole'] ?? 0;
+                                    $roleName = $role['Role'] ?? $role['role'] ?? '';
+                                ?>
+                                    <option value="<?= $roleId ?>"><?= htmlspecialchars($roleName) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -382,30 +411,42 @@ if (isset($_SESSION['notification'])) {
                             $filteredUsers = $users;
                             if ($search !== '') {
                                 $filteredUsers = array_filter($users, function($u) use ($search) {
-                                    return stripos($u['Identifiant'], $search) !== false;
+                                    $identifiant = $u['Identifiant'] ?? $u['identifiant'] ?? '';
+                                    return stripos($identifiant, $search) !== false;
                                 });
                             }
-                            foreach ($filteredUsers as $u): ?>
+                            foreach ($filteredUsers as $u): 
+                                // Gérer les deux cas : majuscules (alias) et minuscules (PostgreSQL)
+                                $idUtilisateur = $u['idUtilisateur'] ?? $u['idutilisateur'] ?? 0;
+                                $idRole = $u['idRole'] ?? $u['idrole'] ?? 0;
+                                $nom = $u['Nom'] ?? $u['nom'] ?? '';
+                                $prenom = $u['Prenom'] ?? $u['prenom'] ?? '';
+                                $identifiant = $u['Identifiant'] ?? $u['identifiant'] ?? '';
+                                $motDePasse = $u['MotDePasse'] ?? $u['motdepasse'] ?? '';
+                            ?>
                                 <tr>
                                     <form method="post">
-                                        <td class="px-4 py-2"><?= $u['idUtilisateur'] ?></td>
-                                        <td class="px-4 py-2"><input type="text" name="Nom" value="<?= htmlspecialchars($u['Nom']) ?>" class="border rounded px-2 py-1" required></td>
-                                        <td class="px-4 py-2"><input type="text" name="Prenom" value="<?= htmlspecialchars($u['Prenom']) ?>" class="border rounded px-2 py-1" required></td>
-                                        <td class="px-4 py-2"><input type="text" name="Identifiant" value="<?= htmlspecialchars($u['Identifiant']) ?>" class="border rounded px-2 py-1" required></td>
+                                        <td class="px-4 py-2"><?= $idUtilisateur ?></td>
+                                        <td class="px-4 py-2"><input type="text" name="Nom" value="<?= htmlspecialchars($nom) ?>" class="border rounded px-2 py-1" required></td>
+                                        <td class="px-4 py-2"><input type="text" name="Prenom" value="<?= htmlspecialchars($prenom) ?>" class="border rounded px-2 py-1" required></td>
+                                        <td class="px-4 py-2"><input type="text" name="Identifiant" value="<?= htmlspecialchars($identifiant) ?>" class="border rounded px-2 py-1" required></td>
                                         <td class="px-4 py-2">
                                             <select name="idRole" class="border rounded px-2 py-1" required>
-                                                <?php foreach ($roles as $role): ?>
-                                                    <option value="<?= $role['idRole'] ?>" <?= $u['idRole'] == $role['idRole'] ? 'selected' : '' ?>>
-                                                        <?= htmlspecialchars($role['Role']) ?>
+                                                <?php foreach ($roles as $role): 
+                                                    $roleId = $role['idRole'] ?? $role['idrole'] ?? 0;
+                                                    $roleName = $role['Role'] ?? $role['role'] ?? '';
+                                                ?>
+                                                    <option value="<?= $roleId ?>" <?= $idRole == $roleId ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($roleName) ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </td>
                                         <td class="px-4 py-2">
-                                            <input type="hidden" name="idUtilisateur" value="<?= $u['idUtilisateur'] ?>">
-                                            <input type="hidden" name="MotDePasse" value="<?= htmlspecialchars($u['MotDePasse']) ?>">
+                                            <input type="hidden" name="idUtilisateur" value="<?= $idUtilisateur ?>">
+                                            <input type="hidden" name="MotDePasse" value="<?= htmlspecialchars($motDePasse) ?>">
                                             <button class="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500" type="submit" name="action" value="edit">Modifier</button>
-                                            <button type="button" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="openDeleteModal(<?= $u['idUtilisateur'] ?>, '<?= htmlspecialchars($u['Nom'], ENT_QUOTES) ?>', '<?= htmlspecialchars($u['Prenom'], ENT_QUOTES) ?>')">Supprimer</button>
+                                            <button type="button" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" onclick="openDeleteModal(<?= $idUtilisateur ?>, '<?= htmlspecialchars($nom, ENT_QUOTES) ?>', '<?= htmlspecialchars($prenom, ENT_QUOTES) ?>')">Supprimer</button>
                                         </td>
                                         <td class="px-4 py-2 text-center">
                                             <button type="button" class="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition flex items-center justify-center mx-auto" style="min-width:44px;" title="Réinitialiser le mot de passe" onclick="openResetPasswordModal(<?= $u['idUtilisateur'] ?>)">
