@@ -319,7 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $fabrications = [];
     $resFab = $conn->query("SELECT f.*, e.Famille, e.Couleur, e.Taille 
                             FROM Fabrication f 
-                            LEFT JOIN Echantillon e ON f.RefEchantillon = e.RefEchantillon 
+                            LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon 
                             WHERE f.idLot IS NOT NULL AND f.idLot != ''
                             ORDER BY f.datecreation DESC, f.idLot DESC");
     $groupedFabrications = [];
@@ -504,10 +504,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                     $row['echantillons'] = [];
                     // Pour les retours, utiliser la table RetourEchantillon
                     if (strpos($type, 'returns') !== false) {
-                        $res2 = $conn->query("SELECT re.RefEchantillon as refEchantillon, e.Famille as famille, e.Couleur as couleur, re.Qte as qte FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.RefEchantillon = e.RefEchantillon WHERE re.idRetour = " . $row['idDemande']);
+                        $res2 = $conn->query("SELECT re.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, re.qte AS qte FROM RetourEchantillon re LEFT JOIN Echantillon e ON re.refechantillon = e.refechantillon WHERE re.idretour = " . $row['idDemande']);
                     } elseif (strpos($type, 'fabrications') !== false) {
                         // Pour les fabrications, utiliser la table Fabrication
-                        $res2 = $conn->query("SELECT f.RefEchantillon as refEchantillon, e.Famille as famille, e.Couleur as couleur, f.Qte as qte FROM Fabrication f LEFT JOIN Echantillon e ON f.RefEchantillon = e.RefEchantillon WHERE f.idLot = '" . $conn->real_escape_string($row['idDemande']) . "'");
+                        $res2 = $conn->query("SELECT f.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, f.qte AS qte FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idLot = '" . $conn->real_escape_string($row['idDemande']) . "'");
                     } else {
                         // Pour les autres demandes, utiliser DemandeEchantillon
                         $res2 = $conn->query("SELECT refEchantillon, famille, couleur, qte FROM DemandeEchantillon WHERE idDemande = " . $row['idDemande']);
@@ -580,7 +580,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
     $idLot = $_GET['idLot'];
     $details = [];
-    $stmt = $conn->prepare("SELECT f.RefEchantillon, f.Qte, e.Famille, e.Couleur, e.Taille FROM Fabrication f LEFT JOIN Echantillon e ON f.RefEchantillon = e.RefEchantillon WHERE f.idLot = ?");
+    $stmt = $conn->prepare("SELECT f.refechantillon AS RefEchantillon, f.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idLot = ?");
     $stmt->bind_param("s", $idLot);
     if ($stmt->execute()) {
         $result = $stmt->get_result();
@@ -924,7 +924,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // 2. Récupérer les échantillons du retour
         $echantillons_a_retourner = [];
-        $stmt_items = $conn->prepare("SELECT RefEchantillon, qte FROM RetourEchantillon WHERE idRetour = ?");
+        $stmt_items = $conn->prepare("SELECT refechantillon AS RefEchantillon, qte AS qte FROM RetourEchantillon WHERE idretour = ?");
         $stmt_items->bind_param("i", $idRetour);
         $stmt_items->execute();
         $result_items = $stmt_items->get_result();
@@ -999,7 +999,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // 2. Récupérer les échantillons du retour
         $echantillons_a_retourner = [];
-        $stmt_items = $conn->prepare("SELECT RefEchantillon, qte FROM RetourEchantillon WHERE idRetour = ?");
+        $stmt_items = $conn->prepare("SELECT refechantillon AS RefEchantillon, qte AS qte FROM RetourEchantillon WHERE idretour = ?");
         $stmt_items->bind_param("i", $idRetour);
         $stmt_items->execute();
         $result_items = $stmt_items->get_result();
@@ -1137,7 +1137,7 @@ $colorMap = [
 $fabrications = [];
 $resFab = $conn->query("SELECT f.*, e.Famille, e.Couleur, e.Taille 
                         FROM Fabrication f 
-                        LEFT JOIN Echantillon e ON f.RefEchantillon = e.RefEchantillon 
+                        LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon 
                         WHERE f.idLot IS NOT NULL AND f.idLot != ''
                         ORDER BY f.DateCreation DESC, f.idLot DESC");
 $groupedFabrications = [];
@@ -1630,7 +1630,7 @@ while ($row = $resFab->fetch_assoc()) {
         SELECT SUM(re.qte) as total
         FROM RetourEchantillon re
         JOIN Retour r ON r.idRetour = re.idRetour
-        WHERE re.RefEchantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
+        WHERE re.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
           AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')
     ");
     $rowRetour = $resRetour ? $resRetour->fetch_assoc() : null;
@@ -1788,7 +1788,7 @@ while ($row = $resFab->fetch_assoc()) {
                                     if ($resFab) {
                                         while($lot = $resFab->fetch_assoc()) {
                                             $lot_details = [];
-                                            $resDet = $conn->query("SELECT fab.RefEchantillon, fab.Qte, e.Famille, e.Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.RefEchantillon = e.RefEchantillon WHERE fab.idLot = '{$lot['idLot']}'");
+                                            $resDet = $conn->query("SELECT fab.refechantillon AS RefEchantillon, fab.qte AS Qte, e.famille AS Famille, e.couleur AS Couleur FROM Fabrication fab LEFT JOIN Echantillon e ON fab.refechantillon = e.refechantillon WHERE fab.idLot = '{$lot['idLot']}'");
                                             if ($resDet) {
                                                 while($det = $resDet->fetch_assoc()) {
                                                     $lot_details[] = ['refEchantillon' => $det['RefEchantillon'], 'famille' => $det['Famille'], 'couleur' => $det['Couleur'], 'qte' => $det['Qte']];
