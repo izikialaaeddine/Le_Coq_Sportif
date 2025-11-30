@@ -164,15 +164,14 @@ if ($isPostgres) {
     } catch (PDOException $e) {
         error_log("PostgreSQL Connection Error: " . $e->getMessage());
         error_log("Host: $host, Port: $port, DB: $db, User: $user");
-        // Ne pas afficher l'erreur directement, la logger seulement
-        http_response_code(500);
-        die('Erreur de connexion à la base de données. Vérifiez les logs.');
+        // Lancer une exception au lieu de die() pour permettre la gestion d'erreur
+        throw new Exception('Erreur de connexion PostgreSQL: ' . $e->getMessage());
     }
 } else {
     // Connexion MySQL (local)
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-        die('Erreur de connexion MySQL: ' . $conn->connect_error);
+    $conn = new mysqli($host, $user, $pass, $db);
+    if ($conn->connect_error) {
+        throw new Exception('Erreur de connexion MySQL: ' . $conn->connect_error);
     }
 }
 ?>
