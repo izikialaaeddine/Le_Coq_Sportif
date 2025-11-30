@@ -18,8 +18,18 @@ ini_set('html_errors', 0);
 ini_set('opcache.enable', 1);
 ini_set('opcache.memory_consumption', 128);
 ini_set('opcache.max_accelerated_files', 10000);
+ini_set('opcache.revalidate_freq', 60);
 
 // Désactiver les informations de débogage
 ini_set('expose_php', 0);
+
+// Optimisations mémoire
+ini_set('memory_limit', '256M');
+ini_set('max_execution_time', 30);
+
+// Compression de sortie
+if (extension_loaded('zlib') && !ob_get_level()) {
+    ob_start('ob_gzhandler');
+}
 ?>
 

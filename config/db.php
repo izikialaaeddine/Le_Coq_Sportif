@@ -31,7 +31,9 @@ if ($isPostgres) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_TIMEOUT => 10,
+            PDO::ATTR_TIMEOUT => 5,
+            PDO::ATTR_PERSISTENT => false, // Pas de connexion persistante pour éviter les problèmes
+            PDO::ATTR_STRINGIFY_FETCHES => false,
         ]);
         
         // Créer une classe wrapper pour compatibilité avec mysqli
