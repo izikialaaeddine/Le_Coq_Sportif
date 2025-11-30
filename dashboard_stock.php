@@ -154,17 +154,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     (SELECT 'demande' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-    JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
-    WHERE d.TypeDemande = 'demande'
-    GROUP BY d.idDemande
+    JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
+    WHERE d.typedemande = 'demande'
+    GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
     )
     UNION ALL
     (SELECT 'retour' as type, d.datedemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-    JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
-    WHERE d.TypeDemande = 'retour'
-    GROUP BY d.idDemande
+    JOIN DemandeEchantillon de ON d.iddemande = de.iddemande
+    WHERE d.typedemande = 'retour'
+    GROUP BY d.iddemande, d.datedemande, u.prenom, u.nom
     )
     UNION ALL
     (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
@@ -1615,7 +1615,7 @@ while ($row = $resFab->fetch_assoc()) {
     $resEmprunt = $conn->query("
         SELECT SUM(de.qte) as total
         FROM DemandeEchantillon de
-        JOIN Demande d ON d.idDemande = de.idDemande
+        JOIN Demande d ON d.iddemande = de.iddemande
         WHERE de.refEchantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
           AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
     ");
