@@ -1847,25 +1847,33 @@ if ($resFab) {
                                         <tr class="hover:bg-gray-50" data-type="<?= htmlspecialchars(strtolower($demande['TypeDemande'] ?? 'demande')) ?>">
                                             <!-- <td class="px-4 py-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($demande['idDemande']) ?></td> -->
                                             <td class="px-4 py-3 text-sm text-gray-700">
-                                                <?= htmlspecialchars($demande['PrenomDemandeur'] . ' ' . $demande['NomDemandeur']) ?>
+                                                <?= htmlspecialchars(($demande['PrenomDemandeur'] ?? '') . ' ' . ($demande['NomDemandeur'] ?? '')) ?>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-700">
-                                                <?php foreach ($demande['echantillons'] as $e): ?>
-                                                    <div>
-                                                        <?= htmlspecialchars($e['refEchantillon'] ?? '') ?>
-                                                        <?php if (isset($e['famille'])): ?> (<?= htmlspecialchars($e['famille']) ?>)<?php endif; ?>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            </td>
-                                            <td class="px-4 py-3 text-sm text-gray-700">
-                                                <?php if (strtolower(trim($demande['TypeDemande'] ?? '')) === 'retour'): ?>
-                                                <?php foreach ($demande['echantillons'] as $e): ?>
-                                                        <div><?= htmlspecialchars($e['qte'] ?? '') ?></div>
-                                                <?php endforeach; ?>
-                                                <?php else: ?>
+                                                <?php if (!empty($demande['echantillons'])): ?>
                                                     <?php foreach ($demande['echantillons'] as $e): ?>
-                                                        <div>1</div>
+                                                        <div>
+                                                            <?= htmlspecialchars($e['refEchantillon'] ?? '') ?>
+                                                            <?php if (isset($e['famille'])): ?> (<?= htmlspecialchars($e['famille']) ?>)<?php endif; ?>
+                                                        </div>
                                                     <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <span class="text-gray-400 italic">Aucun échantillon</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-700">
+                                                <?php if (!empty($demande['echantillons'])): ?>
+                                                    <?php if (strtolower(trim($demande['TypeDemande'] ?? '')) === 'retour'): ?>
+                                                        <?php foreach ($demande['echantillons'] as $e): ?>
+                                                            <div><?= htmlspecialchars($e['qte'] ?? '') ?></div>
+                                                        <?php endforeach; ?>
+                                                    <?php else: ?>
+                                                        <?php foreach ($demande['echantillons'] as $e): ?>
+                                                            <div><?= htmlspecialchars($e['qte'] ?? '1') ?></div>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <span class="text-gray-400">-</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td class="px-4 py-3 text-sm text-gray-700">
