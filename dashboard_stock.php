@@ -1840,8 +1840,13 @@ if ($resFab) {
                                     // 3. Fusionner et trier
                                     $all_requests = array_merge($demandes_et_retours, $retours, $fabrications_as_demandes);
                                     usort($all_requests, function($a, $b) {
-                                        return strtotime($b['request_date']) - strtotime($a['request_date']);
+                                        $dateA = $a['request_date'] ?? $a['DateDemande'] ?? $a['DateRetour'] ?? '';
+                                        $dateB = $b['request_date'] ?? $b['DateDemande'] ?? $b['DateRetour'] ?? '';
+                                        return strtotime($dateB) - strtotime($dateA);
                                     });
+                                    
+                                    // DEBUG TEMPORAIRE - À SUPPRIMER
+                                    // echo "<!-- DEBUG: Nombre de demandes: " . count($demandes_et_retours) . ", retours: " . count($retours) . ", fabrications: " . count($fabrications_as_demandes) . ", total: " . count($all_requests) . " -->";
                                     ?>
                                     <?php foreach ($all_requests as $demande): ?>
                                         <tr class="hover:bg-gray-50" data-type="<?= htmlspecialchars(strtolower($demande['TypeDemande'] ?? 'demande')) ?>">
