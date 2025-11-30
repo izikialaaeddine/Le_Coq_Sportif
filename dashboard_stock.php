@@ -1118,10 +1118,17 @@ function getTextColor($bgHex) {
     return ($luminance > 0.6) ? '#222' : '#fff'; // Noir si fond clair, blanc sinon
 }
 
+// Récupérer les échantillons avec alias pour PostgreSQL
 $echantillons = [];
-$res = $conn->query("SELECT * FROM Echantillon ORDER BY datecreation DESC");
-while ($row = $res->fetch_assoc()) {
-    $echantillons[] = $row;
+$res = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.description AS Description, e.datecreation AS DateCreation, e.idutilisateur AS idUtilisateur FROM Echantillon e ORDER BY e.datecreation DESC");
+if ($res) {
+    if (method_exists($res, 'fetch_all')) {
+        $echantillons = $res->fetch_all(MYSQLI_ASSOC);
+    } else {
+        while ($row = $res->fetch_assoc()) {
+            $echantillons[] = $row;
+        }
+    }
 }
 
 $colorMap = [
@@ -1643,7 +1650,7 @@ while ($row = $resFab->fetch_assoc()) {
         FROM RetourEchantillon re
         JOIN Retour r ON r.idRetour = re.idRetour
         WHERE re.refechantillon = '" . $conn->real_escape_string($sample['RefEchantillon']) . "'
-          AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')
+          AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
     ");
     $rowRetour = $resRetour ? $resRetour->fetch_assoc() : null;
     $qteRetournee = (int)($rowRetour['total'] ?? 0);
