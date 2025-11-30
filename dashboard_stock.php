@@ -1772,8 +1772,8 @@ if ($resFab) {
                                     $demandes_et_retours = [];
                                     $res = $conn->query("SELECT d.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                                                          FROM Demande d
-                                                         JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
-                                                         ORDER BY d.datedemande DESC LIMIT 100");
+                                                         JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+                                                         ORDER BY d.DateDemande DESC LIMIT 100");
                                     if ($res) {
                                     while ($row = $res->fetch_assoc()) {
                                         $row['echantillons'] = [];
