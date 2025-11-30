@@ -73,7 +73,7 @@ $res = $conn->query("
     SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
     FROM Retour r
     JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
-    ORDER BY r.DateRetour DESC
+    ORDER BY r.dateretour DESC
 ");
 if ($res) {
     while ($row = $res->fetch_assoc()) {
@@ -103,11 +103,11 @@ $res = $conn->query("
     FROM DemandeEchantillon de
     JOIN Demande d ON d.idDemande = de.idDemande
     WHERE (
-        d.Statut = 'Validée'
-        OR d.Statut = 'emprunte'
-        OR d.Statut = 'Prêt pour retrait'
-        OR d.Statut = 'En fabrication'
-        OR d.Statut = 'Attente inter-service'
+        d.statut = 'Validée'
+        OR d.statut = 'emprunte'
+        OR d.statut = 'Prêt pour retrait'
+        OR d.statut = 'En fabrication'
+        OR d.statut = 'Attente inter-service'
     ) AND d.idutilisateur = " . intval($currentUser['id']) . "
     GROUP BY de.refEchantillon, de.famille, de.couleur
 ");
@@ -150,11 +150,11 @@ $statuts = ["Approuvée", "Prêt pour retrait", "emprunte", "En fabrication"];
 $statuts_sql = implode("','", $statuts);
 $demandes_retour = [];
 $res = $conn->query("
-    SELECT d.idDemande, d.DateDemande, d.Statut
+    SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, d.statut AS Statut
     FROM Demande d
     WHERE d.idutilisateur = " . intval($currentUser['id']) . "
-      AND d.Statut IN ('$statuts_sql')
-    ORDER BY d.DateDemande DESC
+      AND d.statut IN ('$statuts_sql')
+    ORDER BY d.datedemande DESC
 ");
 if ($res) {
     while ($row = $res->fetch_assoc()) {
@@ -274,9 +274,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['demande'])) {
             $resEmprunt = $conn->query("
                 SELECT SUM(de.qte) as total
                 FROM DemandeEchantillon de
-                JOIN Demande d ON d.idDemande = de.idDemande
+                JOIN Demande d ON d.iddemande = de.iddemande
                 WHERE de.refEchantillon = '" . $conn->real_escape_string($ref) . "'
-                  AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
+                  AND d.statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
             ");
             $rowEmprunt = $resEmprunt ? $resEmprunt->fetch_assoc() : null;
             $qteEmpruntee = (int)($rowEmprunt['total'] ?? 0);

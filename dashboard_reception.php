@@ -33,12 +33,12 @@ while ($row = $res->fetch_assoc()) {
     $ref = $row['RefEchantillon'];
 
     // Total emprunté
-    $resEmprunt = $conn->query("SELECT SUM(de.qte) as nb FROM DemandeEchantillon de JOIN Demande d ON d.idDemande = de.idDemande WHERE de.refEchantillon = '".$conn->real_escape_string($ref)."' AND d.Statut IN ('Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')");
+    $resEmprunt = $conn->query("SELECT SUM(de.qte) as nb FROM DemandeEchantillon de JOIN Demande d ON d.iddemande = de.iddemande WHERE de.refEchantillon = '".$conn->real_escape_string($ref)."' AND d.statut IN ('Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')");
     $rowEmprunt = $resEmprunt ? $resEmprunt->fetch_assoc() : null;
     $nbEmprunts = (int)($rowEmprunt['nb'] ?? 0);
 
     // Total retourné - CORRECTION: utiliser Statut au lieu de StatutRetour
-    $resRetour = $conn->query("SELECT SUM(re.qte) as nb FROM RetourEchantillon re JOIN Retour r ON r.idRetour = re.idRetour WHERE re.RefEchantillon = '".$conn->real_escape_string($ref)."' AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')");
+    $resRetour = $conn->query("SELECT SUM(re.qte) as nb FROM RetourEchantillon re JOIN Retour r ON r.idretour = re.idretour WHERE re.RefEchantillon = '".$conn->real_escape_string($ref)."' AND r.statut IN ('Validé', 'Approuvé', 'Retourné')");
     $rowRetour = $resRetour ? $resRetour->fetch_assoc() : null;
     $nbRetours = (int)($rowRetour['nb'] ?? 0);
 
@@ -53,7 +53,7 @@ while ($row = $res->fetch_assoc()) {
     $samples[] = $row;
 }
 // Récupérer les 5 derniers échantillons avec nom/prénom utilisateur
-$lastSamplesSQL = "SELECT E.*, U.nom AS Nom, U.prenom AS Prenom FROM Echantillon E LEFT JOIN Utilisateur U ON E.idutilisateur = U.idutilisateur ORDER BY E.DateCreation DESC LIMIT 5";
+$lastSamplesSQL = "SELECT E.*, U.nom AS Nom, U.prenom AS Prenom FROM Echantillon E LEFT JOIN Utilisateur U ON E.idutilisateur = U.idutilisateur ORDER BY E.datecreation DESC LIMIT 5";
 $lastSamplesPHP = $conn->query($lastSamplesSQL)->fetch_all(MYSQLI_ASSOC);
 // Après la récupération de $samples :
 $totalSamplesPHP = count($samples);
