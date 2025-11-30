@@ -219,7 +219,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         }
     }
     // === AJOUT : Récupérer les retours en attente ===
-    echo '<tr><td colspan="7" style="color:red">DEBUG: Début du code PHP retours</td></tr>';
     $res = $conn->query("SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
                          FROM Retour r
                          JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
