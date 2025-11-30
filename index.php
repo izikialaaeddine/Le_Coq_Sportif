@@ -25,24 +25,28 @@ try {
 
 // Fetch all users with their credentials for display
 $all_users = [];
-try {
-    // PostgreSQL convertit les noms de colonnes en minuscules sauf si entre guillemets
-    // Utiliser des alias en minuscules pour compatibilité
-    $users_query = $conn->query("SELECT u.idutilisateur as idUtilisateur, u.nom as Nom, u.prenom as Prenom, u.identifiant as Identifiant, r.role as Role FROM Utilisateur u LEFT JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant IS NOT NULL AND u.identifiant != '' ORDER BY u.nom, u.prenom");
-    if ($users_query) {
-        // Compatibilité avec PDO et MySQLi
-        if (method_exists($users_query, 'fetch_all')) {
-            $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
-        } else {
-            // Pour PDO wrapper
-            while ($row = $users_query->fetch_assoc()) {
-                $all_users[] = $row;
+if (isset($conn)) {
+    try {
+        // PostgreSQL convertit les noms de colonnes en minuscules sauf si entre guillemets
+        // Utiliser des alias en minuscules pour compatibilité
+        $users_query = $conn->query("SELECT u.idutilisateur as idUtilisateur, u.nom as Nom, u.prenom as Prenom, u.identifiant as Identifiant, r.role as Role FROM Utilisateur u LEFT JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant IS NOT NULL AND u.identifiant != '' ORDER BY u.nom, u.prenom");
+        if ($users_query) {
+            // Compatibilité avec PDO et MySQLi
+            if (method_exists($users_query, 'fetch_all')) {
+                $all_users = $users_query->fetch_all(MYSQLI_ASSOC);
+            } else {
+                // Pour PDO wrapper
+                while ($row = $users_query->fetch_assoc()) {
+                    $all_users[] = $row;
+                }
             }
         }
+    } catch (Exception $e) {
+        error_log("Error fetching users: " . $e->getMessage());
+        $all_users = [];
     }
-} catch (Exception $e) {
-    error_log("Error fetching users: " . $e->getMessage());
-    $all_users = [];
+} else {
+    error_log("ERROR: \$conn is not set!");
 }
 
 // Mots de passe pour affichage (mapping des identifiants aux mots de passe)
@@ -57,10 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identifiant = trim($_POST['identifiant'] ?? '');
     $mdp = trim($_POST['mdp'] ?? '');
     if ($identifiant && $mdp) {
-        try {
-            // PostgreSQL: utiliser des noms de colonnes en minuscules avec alias
-            $stmt = $conn->prepare('SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom, r.role as Role FROM Utilisateur u JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant = ?');
-            if ($stmt) {
+        if (!isset($conn)) {
+            $error_message = "Erreur de connexion à la base de données.";
+        } else {
+            try {
+                // PostgreSQL: utiliser des noms de colonnes en minuscules avec alias
+                $stmt = $conn->prepare('SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom, r.role as Role FROM Utilisateur u JOIN Role r ON u.idrole = r.idrole WHERE u.identifiant = ?');
+                if ($stmt) {
                 $stmt->bind_param('s', $identifiant);
                 $stmt->execute();
                 $result = $stmt->get_result();
@@ -111,12 +118,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $error_message = "Erreur lors de la vérification des identifiants.";
                 }
-            } else {
-                $error_message = "Erreur de préparation de la requête.";
+                } else {
+                    $error_message = "Erreur de préparation de la requête.";
+                }
+            } catch (Exception $e) {
+                error_log("Login error: " . $e->getMessage());
+                $error_message = "Erreur de connexion. Veuillez réessayer. " . $e->getMessage();
             }
-        } catch (Exception $e) {
-            error_log("Login error: " . $e->getMessage());
-            $error_message = "Erreur de connexion. Veuillez réessayer.";
         }
     } else {
         $error_message = "Veuillez remplir tous les champs.";
