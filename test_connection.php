@@ -27,14 +27,22 @@ echo "<hr>";
 echo "<h2>Test de Connexion Directe PDO:</h2>";
 
 try {
-    $dsn = "pgsql:host=$host;port=$port;dbname=$db;options='--client_encoding=UTF8'";
+    // Forcer IPv4 en résolvant le hostname
+    echo "Résolution DNS...<br>";
+    $host_ip = gethostbyname($host);
+    echo "Host résolu: " . htmlspecialchars($host) . " → " . htmlspecialchars($host_ip) . "<br><br>";
+    
+    // Utiliser l'IP si résolue, sinon le hostname
+    $connect_host = ($host_ip !== $host) ? $host_ip : $host;
+    
+    $dsn = "pgsql:host=$connect_host;port=$port;dbname=$db;options='--client_encoding=UTF8'";
     echo "DSN: " . htmlspecialchars(str_replace($pass, '***', $dsn)) . "<br><br>";
     
     $pdo = new PDO($dsn, $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
-        PDO::ATTR_TIMEOUT => 5,
+        PDO::ATTR_TIMEOUT => 10,
     ]);
     
     echo "✅ Connexion PDO réussie!<br><br>";
