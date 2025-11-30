@@ -173,8 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     (SELECT 'fabrication' as type, f.datecreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.refechantillon, ', ') as details
     FROM Fabrication f
     JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
-    WHERE f.idLot IS NOT NULL
-    GROUP BY f.idLot
+    WHERE f.idlot IS NOT NULL
+    GROUP BY f.idlot
     )
     ORDER BY activity_date DESC
     LIMIT 5;
@@ -2233,16 +2233,25 @@ if ($resFab) {
                                 <?php $rowspan = count($group); ?>
                                 <?php foreach ($group as $i => $fab): ?>
                                     <tr class="<?= ($i === 0 && !$isFirstLot) ? 'border-t-2 border-gray-200' : '' ?>">
-                                        <td class="px-4 py-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($fab['RefEchantillon']) ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($fab['Famille']) ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($fab['Couleur']) ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($fab['Taille']) ?></td>
-                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($fab['Qte']) ?></td>
+                                        <?php
+                                        $refEch = $fab['RefEchantillon'] ?? $fab['refechantillon'] ?? '';
+                                        $fam = $fab['Famille'] ?? $fab['famille'] ?? '';
+                                        $coul = $fab['Couleur'] ?? $fab['couleur'] ?? '';
+                                        $tail = $fab['Taille'] ?? $fab['taille'] ?? '';
+                                        $qt = $fab['Qte'] ?? $fab['qte'] ?? 0;
+                                        $statutFab = $fab['StatutFabrication'] ?? $fab['statutfabrication'] ?? '';
+                                        $dateCre = $fab['DateCreation'] ?? $fab['datecreation'] ?? '';
+                                        ?>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-900"><?= htmlspecialchars($refEch) ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($fam) ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($coul) ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($tail) ?></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700"><?= htmlspecialchars($qt) ?></td>
                                         <?php if ($i === 0): ?>
-                                            <td class="px-4 py-3 text-sm text-blue-700 font-semibold" rowspan="<?= $rowspan ?>"><?= htmlspecialchars($fab['StatutFabrication']) ?></td>
-                                            <td class="px-4 py-3 text-sm text-gray-700" rowspan="<?= $rowspan ?>"><?= htmlspecialchars(formatDateMoinsUneHeure($fab['DateCreation'])) ?></td>
+                                            <td class="px-4 py-3 text-sm text-blue-700 font-semibold" rowspan="<?= $rowspan ?>"><?= htmlspecialchars($statutFab) ?></td>
+                                            <td class="px-4 py-3 text-sm text-gray-700" rowspan="<?= $rowspan ?>"><?= htmlspecialchars(formatDateMoinsUneHeure($dateCre)) ?></td>
                                             <td class="px-4 py-3 text-sm" rowspan="<?= $rowspan ?>">
-                                                <?php if (strtolower($fab['StatutFabrication']) !== 'terminée'): ?>
+                                                <?php if (strtolower($statutFab) !== 'terminée'): ?>
                                                     <button onclick="editLot('<?= htmlspecialchars($idLot) ?>')" class="text-indigo-600 hover:text-indigo-900 mr-2" title="Modifier"><i class="fas fa-edit"></i></button>
                                                     <button onclick="deleteLot('<?= htmlspecialchars($idLot) ?>')" class="text-red-600 hover:text-red-900" title="Supprimer"><i class="fas fa-trash"></i></button>
                                                     <button onclick="completeLot('<?= htmlspecialchars($idLot) ?>')" class="text-green-600 hover:text-green-900" title="Confirmer et Recevoir la Fabrication"><i class="fas fa-check-square"></i></button>
