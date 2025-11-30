@@ -265,21 +265,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="users-card p-2">
                     <?php foreach ($all_users as $user): ?>
                         <?php
+                        // Gérer les deux cas : majuscules (alias) et minuscules (PostgreSQL)
+                        $role = $user['Role'] ?? $user['role'] ?? '';
+                        $nom = $user['Nom'] ?? $user['nom'] ?? '';
+                        $prenom = $user['Prenom'] ?? $user['prenom'] ?? '';
+                        $identifiant = $user['Identifiant'] ?? $user['identifiant'] ?? '';
+                        
                         $roleClass = '';
-                        $role = $user['Role'] ?? '';
                         if (stripos($role, 'Admin') !== false) $roleClass = 'role-admin';
                         else if (stripos($role, 'Stock') !== false) $roleClass = 'role-stock';
                         else if (stripos($role, 'Groupe') !== false) $roleClass = 'role-groupe';
                         else if (stripos($role, 'Réception') !== false || stripos($role, 'Reception') !== false) $roleClass = 'role-reception';
                         
-                        $identifiant = $user['Identifiant'] ?? '';
                         $password = $passwords_map[$identifiant] ?? 'N/A';
                         ?>
                         <div class="user-item rounded-lg" onclick="fillCredentials('<?= htmlspecialchars($identifiant) ?>', '<?= htmlspecialchars($password) ?>')">
                             <div class="flex items-center justify-between">
                                 <div class="flex-1">
                                     <div class="font-medium text-xs text-gray-800">
-                                        <?= htmlspecialchars(($user['Nom'] ?? '') . ' ' . ($user['Prenom'] ?? '')) ?>
+                                        <?= htmlspecialchars(trim($nom . ' ' . $prenom)) ?>
                                     </div>
                                     <div class="text-xs text-gray-600">
                                         <i class="fas fa-user-circle mr-1"></i>
