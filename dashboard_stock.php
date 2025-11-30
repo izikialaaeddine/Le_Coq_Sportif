@@ -348,7 +348,7 @@ $stats = [
 ];
 
 // Stats Echantillons - Correction complète (sans fabrication qui est dans sa propre section)
-$resSamples = $conn->query("SELECT statut AS Statut, COUNT(*) as count FROM Echantillon GROUP BY statut");
+    $resSamples = $conn->query("SELECT Statut, COUNT(*) as count FROM Echantillon GROUP BY Statut");
 if ($resSamples) {
     while ($row = $resSamples->fetch_assoc()) {
         $status = strtolower(trim($row['Statut']));
