@@ -22,21 +22,10 @@ if (!defined('MYSQLI_ASSOC')) {
 }
 
 if ($isPostgres) {
-    // Connexion PostgreSQL pour Supabase
+    // Connexion PostgreSQL pour Supabase (Session Pooler)
     try {
-        // Forcer IPv4 en résolvant d'abord le hostname en IPv4
-        // Utiliser l'option 'hostaddr' si disponible, sinon forcer IPv4 via DNS
-        $host_ip = gethostbyname($host);
-        if ($host_ip === $host) {
-            // Si la résolution échoue, utiliser le hostname directement mais forcer IPv4
-            $dsn = "pgsql:host=$host;port=$port;dbname=$db";
-        } else {
-            // Utiliser l'IP résolue
-            $dsn = "pgsql:host=$host_ip;port=$port;dbname=$db";
-        }
-        
-        // Ajouter les options
-        $dsn .= ";options='--client_encoding=UTF8'";
+        // Utiliser le hostname directement (Session Pooler gère IPv4/IPv6)
+        $dsn = "pgsql:host=$host;port=$port;dbname=$db;options='--client_encoding=UTF8'";
         
         $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
