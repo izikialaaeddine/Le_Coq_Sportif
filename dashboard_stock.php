@@ -25,10 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
 // Helper function to add history entries
 function ajouterHistorique($conn, $idUtilisateur, $refEchantillon, $typeAction, $description, $dateAction = null) {
+    // PostgreSQL: utiliser idutilisateur en minuscules
     if ($dateAction === null) {
         $dateAction = date('Y-m-d H:i:s');
     }
-    $stmt = $conn->prepare("INSERT INTO Historique (idUtilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO Historique (idutilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
     if (!$stmt) { return false; }
     $stmt->bind_param("issss", $idUtilisateur, $refEchantillon, $typeAction, $dateAction, $description);
     if (!$stmt->execute()) { return false; }
@@ -150,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     // --- ACTIVITÉ RÉCENTE ---
     $recent_activities = [];
     $query_activity = "
-    (SELECT 'demande' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
+    (SELECT 'demande' as type, d.DateDemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
@@ -158,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.idDemande
     )
     UNION ALL
-    (SELECT 'retour' as type, d.DateDemande as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(de.refEchantillon SEPARATOR ', ') as details
+    (SELECT 'retour' as type, d.DateDemande as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(de.refEchantillon, ', ') as details
     FROM Demande d
     JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     JOIN DemandeEchantillon de ON d.idDemande = de.idDemande
@@ -166,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     GROUP BY d.idDemande
     )
     UNION ALL
-    (SELECT 'fabrication' as type, f.DateCreation as activity_date, u.Prenom, u.Nom, GROUP_CONCAT(f.RefEchantillon SEPARATOR ', ') as details
+    (SELECT 'fabrication' as type, f.DateCreation as activity_date, u.prenom AS Prenom, u.nom AS Nom, string_agg(f.RefEchantillon, ', ') as details
     FROM Fabrication f
     JOIN Utilisateur u ON f.idutilisateur = u.idutilisateur
     WHERE f.idLot IS NOT NULL

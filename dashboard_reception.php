@@ -87,7 +87,7 @@ function ajouterHistorique($conn, $idUtilisateur, $refEchantillon, $typeAction, 
     if ($dateAction === null) {
         $dateAction = date('Y-m-d H:i:s');
     }
-    $stmt = $conn->prepare("INSERT INTO Historique (idUtilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO Historique (idutilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
     if (!$stmt) {
         die("Erreur prepare: " . $conn->error);
     }
@@ -214,7 +214,7 @@ if ($formWasSubmitted) {
             } else {
                 // AJOUT inchangé
                 $dateMoinsUneHeure = date('Y-m-d H:i:s', strtotime('-1 hour'));
-                $stmt = $conn->prepare("INSERT INTO Echantillon (RefEchantillon, Famille, Couleur, Taille, Qte, Statut, Description, DateCreation, idUtilisateur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO Echantillon (RefEchantillon, Famille, Couleur, Taille, Qte, Statut, Description, DateCreation, idutilisateur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->bind_param(
                     "ssssisssi",
                     $_POST['reference'],

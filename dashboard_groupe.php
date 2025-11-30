@@ -21,7 +21,7 @@ function ajouterHistorique($conn, $idUtilisateur, $refEchantillon, $typeAction, 
     if ($dateAction === null) {
         $dateAction = date('Y-m-d H:i:s');
     }
-    $stmt = $conn->prepare("INSERT INTO Historique (idUtilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO Historique (idutilisateur, RefEchantillon, TypeAction, DateAction, Description) VALUES (?, ?, ?, ?, ?)");
     if (!$stmt) { return false; }
     $stmt->bind_param("issss", $idUtilisateur, $refEchantillon, $typeAction, $dateAction, $description);
     if (!$stmt->execute()) { return false; }
@@ -35,7 +35,7 @@ $demandes = [];
 $res = $conn->query("
     SELECT d.*, u.nom as NomDemandeur, u.prenom as PrenomDemandeur
     FROM Demande d
-    JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur
+    JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur
     ORDER BY d.DateDemande DESC
 ");
 if (!$res) { die('Erreur SQL : ' . $conn->error); }
@@ -72,7 +72,7 @@ $retours = [];
 $res = $conn->query("
     SELECT r.*, u.nom AS NomDemandeur, u.prenom AS PrenomDemandeur
     FROM Retour r
-    JOIN Utilisateur u ON r.idUtilisateur = u.idUtilisateur
+    JOIN Utilisateur u ON r.idutilisateur = u.idutilisateur
     ORDER BY r.DateRetour DESC
 ");
 if ($res) {
@@ -108,7 +108,7 @@ $res = $conn->query("
         OR d.Statut = 'Prêt pour retrait'
         OR d.Statut = 'En fabrication'
         OR d.Statut = 'Attente inter-service'
-    ) AND d.idUtilisateur = " . intval($currentUser['id']) . "
+    ) AND d.idutilisateur = " . intval($currentUser['id']) . "
     GROUP BY de.refEchantillon, de.famille, de.couleur
 ");
 if (!$res) { die('Erreur SQL : ' . $conn->error); }
@@ -122,7 +122,7 @@ $res = $conn->query("
     SELECT re.refEchantillon, re.famille, re.couleur, SUM(re.qte) as qte_retournee
     FROM RetourEchantillon re
     JOIN Retour r ON r.idRetour = re.idRetour
-    WHERE r.idUtilisateur = " . intval($currentUser['id']) . "
+    WHERE r.idutilisateur = " . intval($currentUser['id']) . "
       AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')
     GROUP BY re.refEchantillon, re.famille, re.couleur
 ");
@@ -152,7 +152,7 @@ $demandes_retour = [];
 $res = $conn->query("
     SELECT d.idDemande, d.DateDemande, d.Statut
     FROM Demande d
-    WHERE d.idUtilisateur = " . intval($currentUser['id']) . "
+    WHERE d.idutilisateur = " . intval($currentUser['id']) . "
       AND d.Statut IN ('$statuts_sql')
     ORDER BY d.DateDemande DESC
 ");
@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['demande'])) {
         $conn->query("DELETE FROM DemandeEchantillon WHERE idDemande = $idDemande");
     } else {
         // AJOUT
-        $stmt = $conn->prepare("INSERT INTO Demande (idUtilisateur, TypeDemande, DateDemande, Statut, Qte, Commentaire) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO Demande (idutilisateur, TypeDemande, DateDemande, Statut, Qte, Commentaire) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("isssis", $idUtilisateur, $typeDemande, $dateDemande, $statut, $qte, $commentaire);
         if (!$stmt->execute()) {
             $_SESSION['notification'] = [
@@ -410,7 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['retour'])) {
     } else {
         // AJOUT
         $idDemande = intval($_POST['idDemande']);
-        $stmt = $conn->prepare("INSERT INTO Retour (idDemande, idUtilisateur, DateRetour, Statut, qte, Commentaire) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO Retour (idDemande, idutilisateur, DateRetour, Statut, qte, Commentaire) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("iissis", $idDemande, $idUtilisateur, $dateRetour, $statut, $qte, $commentaire);
         $stmt->execute();
         $idRetour = $stmt->insert_id;
