@@ -1,12 +1,27 @@
 <?php
+// Activer l'affichage des erreurs temporairement pour déboguer
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 // Démarrer la session AVANT tout
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Configuration d'erreurs et performance
+// Configuration d'erreurs et performance (mais on garde display_errors pour déboguer)
 require_once __DIR__ . '/config/error_config.php';
-require_once __DIR__ . '/config/db.php';
+// Réactiver display_errors après error_config
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+try {
+    require_once __DIR__ . '/config/db.php';
+} catch (Exception $e) {
+    die("Erreur de connexion DB: " . $e->getMessage());
+} catch (Error $e) {
+    die("Erreur fatale DB: " . $e->getMessage());
+}
 
 // Fetch all users with their credentials for display
 $all_users = [];
