@@ -333,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 1) { // 1 = Chef de Stock
-    header('Location: index.php');
+    header('Location: index.php', true, 302);
     exit;
 }
 $currentUser = $_SESSION['user'];

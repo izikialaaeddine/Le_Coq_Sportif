@@ -8,7 +8,7 @@ require_once __DIR__ . '/config/db.php';
 
 // La session est bonne, on la garde simplement
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 2) { // 2 = Chef de Groupe
-    header('Location: index.php');
+    header('Location: index.php', true, 302);
     exit;
 }
 

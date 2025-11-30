@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/config/db.php';
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['idRole'] != 4) {
-    header('Location: index.php');
+    header('Location: index.php', true, 302);
     exit;
 }
 
