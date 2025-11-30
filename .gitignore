@@ -1,7 +1,10 @@
 # Fichiers sensibles
 config/db.php
-*.sql
 *.log
+
+# Fichiers SQL (sauf les migrations)
+database_export.sql
+le_coq_sportif*.sql
 
 # Fichiers système
 .DS_Store
