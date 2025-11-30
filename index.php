@@ -293,7 +293,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h1 class="text-2xl font-bold mb-1">Gestion d'Échantillons</h1>
                 <p class="opacity-80 text-sm">Plateforme de Gestion developpée par<br>IZIKI Alaa Eddine - HAFIT Rabii</p>
             </div>
-            <?php if (isset($error_message)): ?>
+            <?php if (isset($db_error)): ?>
+            <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i><strong>Erreur de base de données:</strong> <?= htmlspecialchars($db_error) ?>
+            </div>
+            <?php endif; ?>
+            <?php if (isset($error_message) && $error_message): ?>
             <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
                 <i class="fas fa-exclamation-circle mr-2"></i><?= htmlspecialchars($error_message) ?>
             </div>
