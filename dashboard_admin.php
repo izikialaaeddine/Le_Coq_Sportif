@@ -158,32 +158,42 @@ if (isset($_POST['action'])) {
     }
 }
 
-// PostgreSQL: utiliser des alias pour les noms de colonnes
-$users_query = $conn->query("SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom FROM Utilisateur u");
-if ($users_query) {
-    if (method_exists($users_query, 'fetch_all')) {
-        $users = $users_query->fetch_all(MYSQLI_ASSOC);
+// PostgreSQL: utiliser des alias pour les noms de colonnes (OPTIMISÉ - une seule requête)
+try {
+    $users_query = $conn->query("SELECT u.idutilisateur as idUtilisateur, u.idrole as idRole, u.identifiant as Identifiant, u.motdepasse as MotDePasse, u.nom as Nom, u.prenom as Prenom FROM Utilisateur u ORDER BY u.nom, u.prenom");
+    if ($users_query) {
+        if (method_exists($users_query, 'fetch_all')) {
+            $users = $users_query->fetch_all(MYSQLI_ASSOC);
+        } else {
+            $users = [];
+            while ($row = $users_query->fetch_assoc()) {
+                $users[] = $row;
+            }
+        }
     } else {
         $users = [];
-        while ($row = $users_query->fetch_assoc()) {
-            $users[] = $row;
-        }
     }
-} else {
+} catch (Exception $e) {
+    error_log("Error fetching users: " . $e->getMessage());
     $users = [];
 }
 
-$roles_query = $conn->query("SELECT r.idrole as idRole, r.role as Role FROM Role r");
-if ($roles_query) {
-    if (method_exists($roles_query, 'fetch_all')) {
-        $roles = $roles_query->fetch_all(MYSQLI_ASSOC);
+try {
+    $roles_query = $conn->query("SELECT r.idrole as idRole, r.role as Role FROM Role r ORDER BY r.idrole");
+    if ($roles_query) {
+        if (method_exists($roles_query, 'fetch_all')) {
+            $roles = $roles_query->fetch_all(MYSQLI_ASSOC);
+        } else {
+            $roles = [];
+            while ($row = $roles_query->fetch_assoc()) {
+                $roles[] = $row;
+            }
+        }
     } else {
         $roles = [];
-        while ($row = $roles_query->fetch_assoc()) {
-            $roles[] = $row;
-        }
     }
-} else {
+} catch (Exception $e) {
+    error_log("Error fetching roles: " . $e->getMessage());
     $roles = [];
 }
 
