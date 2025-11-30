@@ -13,7 +13,7 @@ Système de gestion d'échantillons développé par IZIKI Alaa Eddine et HAFIT R
 
 2. **Configurer Supabase:**
    - Créez un projet sur [Supabase](https://supabase.com)
-   - Importez le schéma de base de données (à adapter pour PostgreSQL)
+   - Importez le schéma de base de données (voir `SUPABASE_SETUP.md`)
    - Notez vos identifiants de connexion
 
 3. **Configurer les variables d'environnement:**
@@ -22,11 +22,12 @@ Système de gestion d'échantillons développé par IZIKI Alaa Eddine et HAFIT R
      - `DB_NAME`
      - `DB_USER`
      - `DB_PASS`
+     - `DB_PORT`
 
 4. **Déployer sur Vercel:**
-   ```bash
-   vercel
-   ```
+   - Via l'interface: Connectez votre repo GitHub à Vercel
+   - Via CLI: `vercel`
+   - Voir `VERCEL_SETUP.md` pour les détails
 
 ## 👤 Comptes Utilisateurs
 
@@ -50,13 +51,19 @@ Système de gestion d'échantillons développé par IZIKI Alaa Eddine et HAFIT R
 ## 🛠️ Technologies
 
 - PHP 8.1+
-- Supabase (PostgreSQL)
+- Supabase (PostgreSQL) / MySQL
 - Tailwind CSS
 - Font Awesome
 - Chart.js
 
-## 📝 Notes
+## 📝 Configuration
 
 - Le fichier `config/db.php` doit être créé à partir de `config/db.php.example`
+- Pour Supabase, utilisez `config/db_supabase.php`
 - Configurez les variables d'environnement dans Vercel pour la production
 
+## 📖 Documentation
+
+- `VERCEL_SETUP.md` - Guide de déploiement sur Vercel
+- `SUPABASE_SETUP.md` - Configuration de Supabase
+- `DEPLOY_ONLINE.md` - Autres options de déploiement
