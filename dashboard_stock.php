@@ -2115,15 +2115,21 @@ while ($row = $resFab->fetch_assoc()) {
                         <input type="text" id="searchEchantillonFabrication" placeholder="Rechercher un échantillon..." class="w-full px-3 py-2 mb-2 border rounded">
                         <select id="echantillonFabricationSelect" class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
                             <option value="">Choisir un échantillon...</option>
-                            <?php foreach ($echantillons as $sample): ?>
+                            <?php foreach ($echantillons as $sample): 
+                                $refEch = $sample['RefEchantillon'] ?? $sample['refechantillon'] ?? '';
+                                $fam = $sample['Famille'] ?? $sample['famille'] ?? '';
+                                $coul = $sample['Couleur'] ?? $sample['couleur'] ?? '';
+                                $tail = $sample['Taille'] ?? $sample['taille'] ?? '';
+                                $qt = $sample['Qte'] ?? $sample['qte'] ?? 0;
+                            ?>
                                     <option
-                                        value="<?= htmlspecialchars($sample['RefEchantillon']) ?>"
-                                        data-famille="<?= htmlspecialchars($sample['Famille']) ?>"
-                                        data-couleur="<?= htmlspecialchars($sample['Couleur']) ?>"
-                                        data-taille="<?= htmlspecialchars($sample['Taille']) ?>"
-                                        data-qte="<?= htmlspecialchars($sample['Qte']) ?>"
+                                        value="<?= htmlspecialchars($refEch) ?>"
+                                        data-famille="<?= htmlspecialchars($fam) ?>"
+                                        data-couleur="<?= htmlspecialchars($coul) ?>"
+                                        data-taille="<?= htmlspecialchars($tail) ?>"
+                                        data-qte="<?= htmlspecialchars($qt) ?>"
                                     >
-                                        <?= htmlspecialchars($sample['RefEchantillon']) ?> – <?= htmlspecialchars($sample['Famille']) ?> – <?= htmlspecialchars($sample['Couleur']) ?> – <?= htmlspecialchars($sample['Taille']) ?> (Stock: <?= htmlspecialchars($sample['Qte']) ?>)
+                                        <?= htmlspecialchars($refEch) ?> – <?= htmlspecialchars($fam) ?> – <?= htmlspecialchars($coul) ?> – <?= htmlspecialchars($tail) ?> (Stock: <?= htmlspecialchars($qt) ?>)
                                     </option>
                             <?php endforeach; ?>
                         </select>
@@ -2838,16 +2844,22 @@ while ($row = $resFab->fetch_assoc()) {
                 const select = document.getElementById('echantillonFabricationSelect');
                 select.innerHTML = ''; // Vide le select
 
-                <?php foreach ($echantillons as $sample): ?>
+                <?php foreach ($echantillons as $sample): 
+                    $stat = $sample['Statut'] ?? $sample['statut'] ?? '';
+                    $refEch = $sample['RefEchantillon'] ?? $sample['refechantillon'] ?? '';
+                    $fam = $sample['Famille'] ?? $sample['famille'] ?? '';
+                    $coul = $sample['Couleur'] ?? $sample['couleur'] ?? '';
+                    $tail = $sample['Taille'] ?? $sample['taille'] ?? '';
+                    $qt = $sample['Qte'] ?? $sample['qte'] ?? 0;
                     // On ne propose que les échantillons disponibles
-                    <?php if (strtolower(trim($sample['Statut'])) === 'disponible'): ?>
+                    if (strtolower(trim($stat)) === 'disponible'): ?>
                         var option = document.createElement('option');
-                        option.value = '<?= htmlspecialchars($sample['RefEchantillon']) ?>';
-                        option.textContent = '<?= htmlspecialchars($sample['RefEchantillon']) ?> – <?= htmlspecialchars($sample['Famille']) ?> – <?= htmlspecialchars($sample['Couleur']) ?> – <?= htmlspecialchars($sample['Taille']) ?> (Stock: <?= htmlspecialchars($sample['Qte']) ?>)';
-                        option.setAttribute('data-famille', '<?= htmlspecialchars($sample['Famille']) ?>');
-                        option.setAttribute('data-couleur', '<?= htmlspecialchars($sample['Couleur']) ?>');
-                        option.setAttribute('data-taille', '<?= htmlspecialchars($sample['Taille']) ?>');
-                        option.setAttribute('data-qte', '<?= htmlspecialchars($sample['Qte']) ?>');
+                        option.value = '<?= htmlspecialchars($refEch) ?>';
+                        option.textContent = '<?= htmlspecialchars($refEch) ?> – <?= htmlspecialchars($fam) ?> – <?= htmlspecialchars($coul) ?> – <?= htmlspecialchars($tail) ?> (Stock: <?= htmlspecialchars($qt) ?>)';
+                        option.setAttribute('data-famille', '<?= htmlspecialchars($fam) ?>');
+                        option.setAttribute('data-couleur', '<?= htmlspecialchars($coul) ?>');
+                        option.setAttribute('data-taille', '<?= htmlspecialchars($tail) ?>');
+                        option.setAttribute('data-qte', '<?= htmlspecialchars($qt) ?>');
                         select.appendChild(option);
                     <?php endif; ?>
                 <?php endforeach; ?>
