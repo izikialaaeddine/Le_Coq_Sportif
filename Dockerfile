@@ -29,6 +29,7 @@ RUN a2ensite 000-default.conf
 # Configurer les permissions
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 755 /var/www/html
+RUN chmod -R 644 /var/www/html/photos/*.png /var/www/html/photos/*.jpg /var/www/html/photos/*.svg 2>/dev/null || true
 
 # Exposer le port
 EXPOSE 80

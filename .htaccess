@@ -43,8 +43,8 @@ RewriteEngine On
     ExpiresByType application/javascript "access plus 1 month"
 </IfModule>
 
-# Protection contre le hotlinking des images
-RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?votredomaine\.com [NC]
-RewriteRule \.(jpg|jpeg|png|gif|svg)$ - [NC,F,L]
+# Protection contre le hotlinking des images (désactivé pour Railway)
+# RewriteCond %{HTTP_REFERER} !^$
+# RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?votredomaine\.com [NC]
+# RewriteRule \.(jpg|jpeg|png|gif|svg)$ - [NC,F,L]
 
