@@ -29,9 +29,10 @@ if (isset($_SESSION['notif_message'])) {
 }
 // Remplacer la récupération de $samples par une version enrichie avec nbEmprunts
 $samples = [];
-$res = $conn->query("SELECT * FROM Echantillon ORDER BY DateCreation DESC");
-while ($row = $res->fetch_assoc()) {
-    $ref = $row['RefEchantillon'];
+$res = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.description AS Description, e.datecreation AS DateCreation, e.idutilisateur AS idUtilisateur FROM Echantillon e ORDER BY e.datecreation DESC");
+if ($res) {
+    while ($row = $res->fetch_assoc()) {
+        $ref = $row['RefEchantillon'] ?? $row['refechantillon'] ?? '';
 
     // Total emprunté
     $resEmprunt = $conn->query("SELECT SUM(de.qte) as nb FROM DemandeEchantillon de JOIN Demande d ON d.iddemande = de.iddemande WHERE de.refEchantillon = '".$conn->real_escape_string($ref)."' AND d.statut IN ('Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')");
@@ -48,14 +49,28 @@ while ($row = $res->fetch_assoc()) {
     $qteReellementDisponible = max(0, (int)$row['Qte'] - ($nbEmprunts - $nbRetours));
     $qteEmprunteeNonRetournee = max(0, $nbEmprunts - $nbRetours);
     
-    $row['QteInitial'] = (int)$row['Qte']; // Stock initial dans la base
-    $row['QteReellementDisponible'] = $qteReellementDisponible; // Stock réellement disponible
-    $row['QteEmprunteeNonRetournee'] = $qteEmprunteeNonRetournee; // Quantité empruntée non retournée
-    $samples[] = $row;
+        $qte = (int)($row['Qte'] ?? $row['qte'] ?? 0);
+        $row['QteInitial'] = $qte; // Stock initial dans la base
+        $row['QteReellementDisponible'] = $qteReellementDisponible; // Stock réellement disponible
+        $row['QteEmprunteeNonRetournee'] = $qteEmprunteeNonRetournee; // Quantité empruntée non retournée
+        $samples[] = $row;
+    }
 }
 // Récupérer les 5 derniers échantillons avec nom/prénom utilisateur
-$lastSamplesSQL = "SELECT E.*, U.nom AS Nom, U.prenom AS Prenom FROM Echantillon E LEFT JOIN Utilisateur U ON E.idutilisateur = U.idutilisateur ORDER BY E.datecreation DESC LIMIT 5";
-$lastSamplesPHP = $conn->query($lastSamplesSQL)->fetch_all(MYSQLI_ASSOC);
+$lastSamplesSQL = "SELECT E.*, E.refechantillon AS RefEchantillon, E.famille AS Famille, E.couleur AS Couleur, E.taille AS Taille, E.qte AS Qte, E.statut AS Statut, E.datecreation AS DateCreation, U.nom AS Nom, U.prenom AS Prenom FROM Echantillon E LEFT JOIN Utilisateur U ON E.idutilisateur = U.idutilisateur ORDER BY E.datecreation DESC LIMIT 5";
+$lastSamples_query = $conn->query($lastSamplesSQL);
+if ($lastSamples_query) {
+    if (method_exists($lastSamples_query, 'fetch_all')) {
+        $lastSamplesPHP = $lastSamples_query->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $lastSamplesPHP = [];
+        while ($row = $lastSamples_query->fetch_assoc()) {
+            $lastSamplesPHP[] = $row;
+        }
+    }
+} else {
+    $lastSamplesPHP = [];
+}
 // Après la récupération de $samples :
 $totalSamplesPHP = count($samples);
 $today = date('Y-m-d');

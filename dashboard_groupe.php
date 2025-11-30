@@ -28,7 +28,19 @@ function ajouterHistorique($conn, $idUtilisateur, $refEchantillon, $typeAction, 
     return true;
 }
 
-$echantillons = $conn->query("SELECT * FROM Echantillon")->fetch_all(MYSQLI_ASSOC);
+$echantillons_query = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.datecreation AS DateCreation FROM Echantillon e");
+if ($echantillons_query) {
+    if (method_exists($echantillons_query, 'fetch_all')) {
+        $echantillons = $echantillons_query->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $echantillons = [];
+        while ($row = $echantillons_query->fetch_assoc()) {
+            $echantillons[] = $row;
+        }
+    }
+} else {
+    $echantillons = [];
+}
 
 // Récupère toutes les demandes avec leurs échantillons ET le nom du demandeur
 $demandes = [];

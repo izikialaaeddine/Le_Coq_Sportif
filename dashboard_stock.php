@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         'totalSamples' => 0, 'availableSamples' => 0, 'borrowedSamples' => 0, 'fabricationSamples' => 0,
         'pendingRequests' => 0, 'approvedRequests' => 0, 'rejectedRequests' => 0, 'returnedRequests' => 0,
     ];
-    $resSamples = $conn->query("SELECT Statut, COUNT(*) as count FROM Echantillon GROUP BY Statut");
+    $resSamples = $conn->query("SELECT statut AS Statut, COUNT(*) as count FROM Echantillon GROUP BY statut");
     if ($resSamples) {
         while ($row = $resSamples->fetch_assoc()) {
             $status = strtolower(trim($row['Statut']));
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $data['recent_activities'] = $recent_activities;
 
     // --- SAMPLES TABLE ---
-    $samples_query = $conn->query("SELECT * FROM Echantillon ORDER BY datecreation DESC");
+    $samples_query = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.description AS Description, e.datecreation AS DateCreation, e.idutilisateur AS idUtilisateur FROM Echantillon e ORDER BY e.datecreation DESC");
     if ($samples_query) {
         if (method_exists($samples_query, 'fetch_all')) {
             $data['samples'] = $samples_query->fetch_all(MYSQLI_ASSOC);
@@ -350,7 +350,7 @@ $stats = [
 ];
 
 // Stats Echantillons - Correction complète (sans fabrication qui est dans sa propre section)
-$resSamples = $conn->query("SELECT Statut, COUNT(*) as count FROM Echantillon GROUP BY Statut");
+$resSamples = $conn->query("SELECT statut AS Statut, COUNT(*) as count FROM Echantillon GROUP BY statut");
 if ($resSamples) {
     while ($row = $resSamples->fetch_assoc()) {
         $status = strtolower(trim($row['Statut']));
