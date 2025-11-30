@@ -9,7 +9,7 @@ require_once __DIR__ . '/config/db.php';
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_zero_stock_samples') {
     header('Content-Type: application/json');
     $res = $conn->query("
-        SELECT e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte
+        SELECT e.refEchantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte
         FROM Echantillon e
         WHERE e.qte = 0
         AND e.refechantillon NOT IN (
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         // 2. Récupérer les échantillons de la demande
         $echantillonsDemandes = [];
-        $resEch = $conn->query("SELECT refechantillon AS refEchantillon, qte FROM DemandeEchantillon WHERE iddemande = $idDemande");
+        $resEch = $conn->query("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE idDemande = $idDemande");
         while ($e = $resEch->fetch_assoc()) { $echantillonsDemandes[] = $e; }
 
         $refs = array_map(fn($e) => $e['refEchantillon'], $echantillonsDemandes);
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         'totalSamples' => 0, 'availableSamples' => 0, 'borrowedSamples' => 0, 'fabricationSamples' => 0,
         'pendingRequests' => 0, 'approvedRequests' => 0, 'rejectedRequests' => 0, 'returnedRequests' => 0,
     ];
-    $resSamples = $conn->query("SELECT statut AS Statut, COUNT(*) as count FROM Echantillon GROUP BY statut");
+    $resSamples = $conn->query("SELECT Statut, COUNT(*) as count FROM Echantillon GROUP BY Statut");
     if ($resSamples) {
         while ($row = $resSamples->fetch_assoc()) {
             $status = strtolower(trim($row['Statut']));
@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $data['recent_activities'] = $recent_activities;
 
     // --- SAMPLES TABLE ---
-    $samples_query = $conn->query("SELECT e.*, e.refechantillon AS RefEchantillon, e.famille AS Famille, e.couleur AS Couleur, e.taille AS Taille, e.qte AS Qte, e.statut AS Statut, e.description AS Description, e.datecreation AS DateCreation, e.idutilisateur AS idUtilisateur FROM Echantillon e ORDER BY e.datecreation DESC");
+    $samples_query = $conn->query("SELECT * FROM Echantillon ORDER BY dateCreation DESC");
     if ($samples_query) {
         if (method_exists($samples_query, 'fetch_all')) {
             $data['samples'] = $samples_query->fetch_all(MYSQLI_ASSOC);
@@ -487,7 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             $query = "SELECT refechantillon AS RefEchantillon, famille AS Famille, couleur AS Couleur, taille AS Taille, qte AS Qte, datecreation AS DateCreation FROM Echantillon WHERE statut = 'En fabrication' ORDER BY datecreation DESC";
             break;
         case 'pending_requests':
-            $query = "SELECT d.iddemande AS idDemande, d.datedemande AS DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idutilisateur = u.idutilisateur WHERE d.typedemande = 'demande' AND d.statut = 'En attente' ORDER BY d.datedemande DESC";
+            $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom FROM Demande d JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur WHERE d.TypeDemande = 'Demande' AND d.Statut = 'En attente' ORDER BY d.DateDemande DESC";
             break;
         case 'approved_requests':
             $query = "SELECT d.idDemande, d.DateDemande, u.nom AS Nom, u.prenom AS Prenom, d.Statut FROM Demande d JOIN Utilisateur u ON d.idUtilisateur = u.idUtilisateur WHERE d.TypeDemande = 'Demande' AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service') ORDER BY d.DateDemande DESC";
@@ -526,7 +526,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
                         $res2 = $conn->query("SELECT f.refechantillon AS refEchantillon, e.famille AS famille, e.couleur AS couleur, f.qte AS qte FROM Fabrication f LEFT JOIN Echantillon e ON f.refechantillon = e.refechantillon WHERE f.idlot = '" . $conn->real_escape_string($row['idDemande']) . "'");
                     } else {
                         // Pour les autres demandes, utiliser DemandeEchantillon
-                        $res2 = $conn->query("SELECT refechantillon AS refEchantillon, famille, couleur, qte FROM DemandeEchantillon WHERE iddemande = " . $row['idDemande']);
+                        $res2 = $conn->query("SELECT * FROM DemandeEchantillon WHERE idDemande = " . $row['idDemande']);
                     }
                     if ($res2) while ($e = $res2->fetch_assoc()) $row['echantillons'][] = $e;
                 }
@@ -852,7 +852,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $conn->begin_transaction();
     try {
         // 1. Vérifier si c'est bien une demande de retour en attente
-        $stmt_check = $conn->prepare("SELECT statut AS Statut FROM Demande WHERE iddemande = ? AND typedemande = 'retour'");
+        $stmt_check = $conn->prepare("SELECT Statut FROM Demande WHERE idDemande = ? AND TypeDemande = 'Retour'");
         $stmt_check->bind_param("i", $idDemande);
         $stmt_check->execute();
         $res_check = $stmt_check->get_result();
@@ -867,7 +867,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // 2. Récupérer les échantillons de la demande de retour
         $echantillons_a_retourner = [];
-        $stmt_items = $conn->prepare("SELECT refechantillon AS refEchantillon, qte FROM DemandeEchantillon WHERE iddemande = ?");
+        $stmt_items = $conn->prepare("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE idDemande = ?");
         $stmt_items->bind_param("i", $idDemande);
         $stmt_items->execute();
         $result_items = $stmt_items->get_result();
@@ -1055,23 +1055,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
     $idValidateur = isset($_SESSION['user']['id']) ? $_SESSION['user']['id'] : 1;
     $statut = ($_POST['action'] === 'approuver') ? 'Approuvée' : 'Refusée';
 
-    $stmt = $conn->prepare("UPDATE Demande SET Statut=?, idValidateur=? WHERE iddemande=?");
+    $stmt = $conn->prepare("UPDATE Demande SET Statut=?, idValidateur=? WHERE idDemande=?");
     $stmt->bind_param("sii", $statut, $idValidateur, $id);
     $ok = $stmt->execute();
 
     // Ajout à l'historique (homogène)
     $echantillons = [];
     $refs = [];
-    $resEch = $conn->query("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE iddemande = $id");
+    $resEch = $conn->query("SELECT refEchantillon, qte FROM DemandeEchantillon WHERE idDemande = $id");
     while ($e = $resEch->fetch_assoc()) {
         $ref = $e['refEchantillon'];
         $qte = $e['qte'];
         $refs[] = $ref;
-        $resDet = $conn->query("SELECT Famille, Couleur, Taille FROM Echantillon WHERE RefEchantillon = '$ref' LIMIT 1");
+        $resDet = $conn->query("SELECT famille, couleur, taille FROM Echantillon WHERE refEchantillon = '$ref' LIMIT 1");
         $rowDet = $resDet ? $resDet->fetch_assoc() : null;
-        $famille = $rowDet['Famille'] ?? '';
-        $couleur = $rowDet['Couleur'] ?? '';
-        $taille = $rowDet['Taille'] ?? '';
+        $famille = $rowDet['famille'] ?? '';
+        $couleur = $rowDet['couleur'] ?? '';
+        $taille = $rowDet['taille'] ?? '';
         $echantillons[] = "$ref (Qté : $qte, Famille : $famille, Couleur : $couleur, Taille : $taille)";
     }
     $detailsString = implode(', ', $echantillons);
@@ -1647,9 +1647,9 @@ if ($resFab) {
     $resEmprunt = $conn->query("
         SELECT SUM(de.qte) as total
         FROM DemandeEchantillon de
-        JOIN Demande d ON d.iddemande = de.iddemande
-        WHERE de.refechantillon = '" . $conn->real_escape_string($refEchantillon) . "'
-          AND d.statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
+        JOIN Demande d ON d.idDemande = de.idDemande
+        WHERE de.refEchantillon = '" . $conn->real_escape_string($refEchantillon) . "'
+          AND d.Statut IN ('Approuvée', 'Validée', 'emprunte', 'Prêt pour retrait', 'En fabrication', 'Attente inter-service')
     ");
     $rowEmprunt = $resEmprunt ? $resEmprunt->fetch_assoc() : null;
     $qteEmpruntee = (int)($rowEmprunt['total'] ?? 0);
@@ -1658,9 +1658,9 @@ if ($resFab) {
     $resRetour = $conn->query("
         SELECT SUM(re.qte) as total
         FROM RetourEchantillon re
-        JOIN Retour r ON r.idretour = re.idretour
-        WHERE re.refechantillon = '" . $conn->real_escape_string($refEchantillon) . "'
-          AND r.statut IN ('Validé', 'Approuvé', 'Retourné')
+        JOIN Retour r ON r.idRetour = re.idRetour
+        WHERE re.refEchantillon = '" . $conn->real_escape_string($refEchantillon) . "'
+          AND r.Statut IN ('Validé', 'Approuvé', 'Retourné')
     ");
     $rowRetour = $resRetour ? $resRetour->fetch_assoc() : null;
     $qteRetournee = (int)($rowRetour['total'] ?? 0);
